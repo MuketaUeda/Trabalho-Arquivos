@@ -5,7 +5,7 @@
 
 
 int main(){
-    
+
     int comando;
     char *tipoArq = (char *)malloc(sizeof(char)*10);
     char *NomeCSV = (char *)malloc(sizeof(char)*25);

@@ -21,7 +21,7 @@
 
     string[i]  = '\0';
 }*/
-
+/*
 char *read_line(FILE *fp, int *isEof){
     char c = 0;
     int size = 0;
@@ -42,7 +42,44 @@ char *read_line(FILE *fp, int *isEof){
 
     return string;
 }
+*/
 
+char* read_line(FILE *stream, int *has_EOF) {
+    char c;
+    unsigned long int n_chars = 0;
+
+    char* line = NULL;
+
+    while ((c = fgetc(stream)) == '\n' || (c == '\r'));
+
+    if (c != EOF) ungetc(c, stream);
+
+    do {
+        c = fgetc(stream);
+
+        if (n_chars % 50 == 0) {
+            int new_size = (n_chars / 50 + 1) * 50 + 1;
+
+            line = (char*)realloc(line, (unsigned long)new_size * sizeof(char));
+        }
+
+        n_chars++;
+
+        if (c != '\n' && c != '\r' && c != EOF) {
+            *(line + n_chars - 1) = c;
+
+            *has_EOF = 0;
+        } else {
+            *(line + n_chars - 1) = '\0';
+
+            if (c == EOF) *has_EOF = 1;
+        }
+    } while (c != '\n' && c != '\r' && c != EOF);
+
+    line = (char*)realloc(line, (unsigned long)(n_chars + 1));
+
+    return line;
+}
 //imprima para impressao do binario na tela
 void binarioNaTela(char *nomeArquivoBinario) { /* Você não precisa entender o código dessa função. */
 
@@ -131,6 +168,7 @@ void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario){
     }
 }
 
+//ERRO NO STRTOK
 void copia_binario1(FILE *CSV, FILE *BIN){
     cabecalhoTipo1_t *cabecalho = inicia_cab_tipo1();
     char *linha = NULL;
@@ -144,35 +182,53 @@ void copia_binario1(FILE *CSV, FILE *BIN){
     dadosTipo1_t *dados = inicializa_dados_tipo1();
     while(isEof == 0){
 		linha = read_line(CSV, &isEof);
+        printf("linha:    %s\n\n\n", linha);
         
         char *token = strtok(linha, ",");
+        printf("id: %s\n\n\n", token);
         dados->id = atoi(token);
         int contador = 2;
 
         while(token != NULL){
             token = strtok(NULL, ",");
 			if(contador == 2){
+                printf("ano: %s\n\n\n", token);
+                if(strlen(token) > 0){
                 dados->ano = atoi(token);
+                }
 			}
+            //ERRO AQUI
 			if(contador == 3){
-				dados->tamanhoCidade = strlen(token);
-				dados->cidade = malloc(sizeof(char)*dados->tamanhoCidade+1);
-				strcpy(dados->cidade, token);
+                printf("cidade: %s\n\n\n", token);
+                    dados->tamanhoCidade = strlen(token);
+                    dados->cidade = malloc(sizeof(char)*dados->tamanhoCidade+1);
+                    //memset(dados->cidade, 0, dados->tamanhoCidade+1);
+                    strcpy(dados->cidade, token);
 			}
 			if(contador == 4){
-				dados->quantidade = atoi(token);
+                printf("quantidade: %s\n\n\n", token);
+                if(strlen(token) > 0){
+				    dados->quantidade = atoi(token);
+                    printf("voce esta aqui2\n");
+                }
+                printf("voce esta aqui2\n");
 			}
 			if(contador == 5){
+                printf("sigla: %s\n\n\n", token);
 				strcpy(dados->sigla, token);
 			}
 			if(contador == 6){
+                printf("marca: %s\n\n\n", token);
 				dados->tamanhoMarca = strlen(token);
 				dados->marca = malloc(sizeof(char)*dados->tamanhoMarca+1);
+                memset(dados->marca, 0, dados->tamanhoMarca+1);
 				strcpy(dados->marca, token);
 			}
 			if(contador == 7){
+                printf("modelo: %s\n\n\n", token);
 				dados->tamanhoModelo = strlen(token);
 				dados->modelo = malloc(sizeof(char)*dados->tamanhoModelo+1);
+                memset(dados->modelo, 0, dados->tamanhoModelo+1);
 				strcpy(dados->modelo, token);
 			}
             contador++;
