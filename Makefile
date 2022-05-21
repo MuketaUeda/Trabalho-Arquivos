@@ -1,6 +1,6 @@
 
 all:
-	gcc *.c -o entrega1 -g -Wall -Werror
+	gcc *.c -o entrega1 -g
 
 run:
 	./entrega1

@@ -22,7 +22,7 @@
     string[i]  = '\0';
 }*/
 
-/*char *read_line(FILE *stream, int *isEof)
+char *read_line(FILE *stream, int *isEof)
 {
     char *linha = NULL;
     int tamanhoLinha = 0;
@@ -31,7 +31,7 @@
     {
         linha = realloc(linha, ++tamanhoLinha * sizeof(char));
         linha[tamanhoLinha - 1] = fgetc(stream);
-    } while (linha[tamanhoLinha - 1] != EOF  && linha[tamanhoLinha - 1] != '\r' && linha[tamanhoLinha - 1] != '\n');
+    } while (linha[tamanhoLinha - 1] != EOF  && linha[tamanhoLinha - 1] != '\n');
     if (linha[tamanhoLinha - 1] == EOF)
     {
         linha[tamanhoLinha - 1] = '\0';
@@ -40,16 +40,16 @@
     else if (linha[tamanhoLinha - 1] == '\n')
     {
         linha[tamanhoLinha - 1] = '\0';
+        if (linha[tamanhoLinha - 2] == '\r')
+            linha[tamanhoLinha - 2] = '\0';
+        
     }
-    else if (linha[tamanhoLinha - 1] == '\r')
-    {
-        linha[tamanhoLinha - 1] = '\0';
-    }
+
 
 
     return linha;
-}*/
-char *read_line(FILE *stream, int *has_EOF)
+}
+/*char *read_line(FILE *stream, int *has_EOF)
 {
     char c;
     unsigned long int n_chars = 0;
@@ -94,7 +94,7 @@ char *read_line(FILE *stream, int *has_EOF)
     line = (char *)realloc(line, (size_t)(n_chars + 1));
 
     return line;
-}
+}*/
 
 // imprima para impressao do binario na tela
 void binarioNaTela(char *nomeArquivoBinario)
@@ -225,6 +225,11 @@ void copia_binario1(FILE *CSV, FILE *BIN, char *nomeBinario)
         char *linha = read_line(CSV, &isEof);
         char *token = my_str_tok(linha, ",");
 
+        if(isEof == 1 && strlen(linha) == 0){
+            free(linha);
+            break;
+        }
+
         // if(linha)
         // free(linha);
         // printf("id: %s\n", token);
@@ -234,7 +239,7 @@ void copia_binario1(FILE *CSV, FILE *BIN, char *nomeBinario)
 
         while (token != NULL)
         {
-            token = my_str_tok(NULL, ",\n");
+            token = my_str_tok(NULL, ",");
             if (contador == 2)
             {
                 // printf("ano: %s\n", token);

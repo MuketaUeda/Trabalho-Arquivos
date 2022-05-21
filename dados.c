@@ -11,10 +11,12 @@ dadosTipo1_t *inicializa_dados_tipo1()
     dados->quantidade = -1;
     dados->sigla = (char *)malloc(3 * sizeof(char));
     dados->sigla[2] = '\0';
+    dados->tamanhoCidade = 0;
+    dados->tamanhoModelo = 0;
+    dados->tamanhoMarca = 0;
     dados->marca = NULL;
     dados->modelo = NULL;
     dados->cidade = NULL;
-    dados->quantidade = -1;
     dados->prox = -1;
     dados->removido = '0';
 
@@ -65,7 +67,7 @@ void destruir_dados_tipo2(dadosTipo2_t *dados)
 int i = 1;
 void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
 {
-    //cabecalhoTipo1_t *cabecalho = inicia_cab_tipo1();
+    // cabecalhoTipo1_t *cabecalho = inicia_cab_tipo1();
     int tamanhoAtual = 0;
 
     fwrite(&dados->removido, sizeof(char), 1, fp);
@@ -85,7 +87,7 @@ void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
 
     if (strlen(dados->sigla) > 0)
     {
-        fwrite(&dados->sigla, sizeof(char), 2, fp);
+        fwrite(dados->sigla, sizeof(char), 2, fp);
     }
     else
     {
@@ -94,7 +96,8 @@ void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
     }
     tamanhoAtual += 2 * sizeof(char);
 
-    //dados->tamanhoCidade = strlen(dados->cidade);
+    if(dados->cidade != NULL && strcmp(dados->cidade, "\0") != 0)
+        dados->tamanhoCidade = strlen(dados->cidade);
     if (dados->tamanhoCidade > 0)
     {
         // Primeiro, o tamanho do nome da cidade, depois o código (0), depois o nome da cidade em si
@@ -104,11 +107,12 @@ void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
         char codCidade = '0';
         fwrite(&codCidade, sizeof(char), 1, fp);
         tamanhoAtual += sizeof(char);
-        fwrite(&dados->cidade, sizeof(char), dados->tamanhoCidade, fp);
+        fwrite(dados->cidade, sizeof(char), dados->tamanhoCidade, fp);
         tamanhoAtual += dados->tamanhoCidade;
     }
 
-    //dados->tamanhoMarca = strlen(dados->marca);
+    if(dados->marca != NULL && strcmp(dados->marca, "\0") != 0)
+        dados->tamanhoMarca = strlen(dados->marca);
     if (dados->tamanhoMarca > 0)
     {
         // Primeiro, o tamanho do nome da marca, depois o código (1), depois o nome da marca em si
@@ -117,10 +121,12 @@ void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
         char codMarca = '1';
         fwrite(&codMarca, sizeof(char), 1, fp);
         tamanhoAtual += sizeof(char);
-        fwrite(&dados->marca, sizeof(char), dados->tamanhoMarca, fp);
+        fwrite(dados->marca, sizeof(char), dados->tamanhoMarca, fp);
         tamanhoAtual += dados->tamanhoMarca;
+        //printf("entrei %d\n\n", i);
     }
-    //dados->tamanhoModelo = strlen(dados->modelo);
+    if(dados->modelo != NULL&& strcmp(dados->modelo, "\0") != 0)
+        dados->tamanhoModelo = strlen(dados->modelo);
     if (dados->tamanhoModelo > 0)
     {
         // Primeiro, o tamanho do nome do modelo, depois o código (0), depois o nome do modelo em si
@@ -129,17 +135,26 @@ void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
         char codModelo = '2';
         fwrite(&codModelo, sizeof(char), 1, fp);
         tamanhoAtual += sizeof(char);
-        fwrite(&dados->modelo, sizeof(char), dados->tamanhoModelo, fp);
+        fwrite(dados->modelo, sizeof(char), dados->tamanhoModelo, fp);
+        // printf("tamanho modelo: %d\n", dados->tamanhoModelo);
+        dados->tamanhoModelo = strlen(dados->modelo);
         tamanhoAtual += dados->tamanhoModelo;
     }
-
+    //printf("tamanho modelo2: %d\n", dados->tamanhoModelo);
 
     printf("%d\n\n", i);
     i++;
     printf("tamano atual: %d\n", tamanhoAtual);
-    printf("tamanho cidade: %d\n", dados->tamanhoCidade);
-    printf("tamanho marca: %d\n", dados->tamanhoMarca);
-    printf("tamanho modelo: %d\n", dados->tamanhoModelo);
+    printf("removido: %c\n", dados->removido);
+    printf("prox: %d\n", dados->prox);
+    printf("id: %d\n", dados->id);
+    printf("ano: %d\n", dados->ano);
+    printf("qtt: %d\n", dados->quantidade);
+    printf("estado: %s\n", dados->sigla);
+    printf("cidade: %s\n", dados->cidade);
+    printf("marca: %s\n", dados->marca);
+    printf("modelo: %s\n", dados->modelo);
+
     char *lixo = (char *)malloc(97 - tamanhoAtual);
     for (int i = 0; i < (97 - tamanhoAtual); i++)
     {
