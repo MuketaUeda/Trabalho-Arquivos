@@ -10,17 +10,17 @@ struct regCabTipo1{
     //verificar se ha nescessidade de um bit a mais
     char status;
     int topo;
-    char desc[41];
-    char desCodigo[23];
-    char desAno[20];
-    char desQuantidade[25];
-    char desEstado[9];
+    char desc[40];
+    char desCodigo[22];
+    char desAno[19];
+    char desQuantidade[24];
+    char desEstado[8];
     char codNome; //'0'
-    char desNome[17];
+    char desNome[16];
     char codMarca; //'1'
-    char desMarca[19];
+    char desMarca[18];
     char codModelo; //'2'
-    char desModelo[20];
+    char desModelo[19];
     int proxRRN; //inicia com zero
     int nroRegRemovidos; //inicia com zero
 };
@@ -48,6 +48,8 @@ struct regCabTipo2{
 cabecalhoTipo1_t *inicia_cab_tipo1();
 void escreve_cabecalho1_arquivo(cabecalhoTipo1_t *cabecalho, FILE *fp);
 void ler_cab_tipo1_arquivo(FILE *fp, cabecalhoTipo1_t *cabecalho);
+void destroi_cabecalho1(cabecalhoTipo1_t *cabecalho);
 
 cabecalhoTipo2_t *inicia_cab_tipo2();
 void ler_cab_tipo2_arquivo(FILE *fp, cabecalhoTipo2_t *cabecalho);
+void destroi_cabecalho2(cabecalhoTipo2_t *cabecalho);

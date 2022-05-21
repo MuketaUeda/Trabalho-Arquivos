@@ -62,11 +62,17 @@ void destruir_dados_tipo2(dadosTipo2_t *dados)
     free(dados);
     return;
 }
-
+int i = 1;
 void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
 {
-    cabecalhoTipo1_t *cabecalho = inicia_cab_tipo1();
+    //cabecalhoTipo1_t *cabecalho = inicia_cab_tipo1();
     int tamanhoAtual = 0;
+
+    fwrite(&dados->removido, sizeof(char), 1, fp);
+    tamanhoAtual += sizeof(char);
+
+    fwrite(&dados->prox, sizeof(int), 1, fp);
+    tamanhoAtual += sizeof(int);
 
     fwrite(&dados->id, sizeof(int), 1, fp);
     tamanhoAtual += sizeof(int);
@@ -80,49 +86,67 @@ void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
     if (strlen(dados->sigla) > 0)
     {
         fwrite(&dados->sigla, sizeof(char), 2, fp);
-    }else
+    }
+    else
     {
-        dados->sigla[0] = '$';
-        dados->sigla[1] = '$';
-        fwrite(dados->sigla, sizeof(char), 2, fp);
+        char lixo[3] = "$$";
+        fwrite(lixo, sizeof(char), 2, fp);
     }
     tamanhoAtual += 2 * sizeof(char);
 
-    if (dados->tamanhoCidade > 0){
-        //Primeiro, o tamanho do nome da cidade, depois o código (0), depois o nome da cidade em si
+    //dados->tamanhoCidade = strlen(dados->cidade);
+    if (dados->tamanhoCidade > 0)
+    {
+        // Primeiro, o tamanho do nome da cidade, depois o código (0), depois o nome da cidade em si
         fwrite(&dados->tamanhoCidade, sizeof(int), 1, fp);
         tamanhoAtual += sizeof(int);
-        //Adicionando código da cidade = 0
-        fwrite(&cabecalho->codNome, sizeof(char), 1, fp);
+        // Adicionando código da cidade = 0
+        char codCidade = '0';
+        fwrite(&codCidade, sizeof(char), 1, fp);
         tamanhoAtual += sizeof(char);
         fwrite(&dados->cidade, sizeof(char), dados->tamanhoCidade, fp);
-        tamanhoAtual += dados->tamanhoCidade * sizeof(char);
+        tamanhoAtual += dados->tamanhoCidade;
     }
-    if(dados->tamanhoMarca > 0){
-        //Primeiro, o tamanho do nome da marca, depois o código (1), depois o nome da marca em si
+
+    //dados->tamanhoMarca = strlen(dados->marca);
+    if (dados->tamanhoMarca > 0)
+    {
+        // Primeiro, o tamanho do nome da marca, depois o código (1), depois o nome da marca em si
         fwrite(&dados->tamanhoMarca, sizeof(int), 1, fp);
         tamanhoAtual += sizeof(int);
-        fwrite(&cabecalho->codMarca, sizeof(char), 1, fp);
+        char codMarca = '1';
+        fwrite(&codMarca, sizeof(char), 1, fp);
         tamanhoAtual += sizeof(char);
         fwrite(&dados->marca, sizeof(char), dados->tamanhoMarca, fp);
-        tamanhoAtual += dados->tamanhoMarca * sizeof(char);
+        tamanhoAtual += dados->tamanhoMarca;
     }
-    if(dados->tamanhoMarca > 0){
-        //Primeiro, o tamanho do nome do modelo, depois o código (0), depois o nome do modelo em si
+    //dados->tamanhoModelo = strlen(dados->modelo);
+    if (dados->tamanhoModelo > 0)
+    {
+        // Primeiro, o tamanho do nome do modelo, depois o código (0), depois o nome do modelo em si
         fwrite(&dados->tamanhoModelo, sizeof(int), 1, fp);
         tamanhoAtual += sizeof(int);
-        fwrite(&cabecalho->codModelo, sizeof(char), 1, fp);
+        char codModelo = '2';
+        fwrite(&codModelo, sizeof(char), 1, fp);
         tamanhoAtual += sizeof(char);
         fwrite(&dados->modelo, sizeof(char), dados->tamanhoModelo, fp);
-        tamanhoAtual += dados->tamanhoModelo * sizeof(char);
+        tamanhoAtual += dados->tamanhoModelo;
     }
 
+
+    printf("%d\n\n", i);
+    i++;
+    printf("tamano atual: %d\n", tamanhoAtual);
+    printf("tamanho cidade: %d\n", dados->tamanhoCidade);
+    printf("tamanho marca: %d\n", dados->tamanhoMarca);
+    printf("tamanho modelo: %d\n", dados->tamanhoModelo);
+    char *lixo = (char *)malloc(97 - tamanhoAtual);
     for (int i = 0; i < (97 - tamanhoAtual); i++)
     {
-        char lixo = '$';
-        fwrite(&lixo, sizeof(char), 1, fp);
+        lixo[i] = '$';
     }
-
+    fwrite(lixo, sizeof(char), 97 - tamanhoAtual, fp);
+    free(lixo);
     return;
 }
 /*

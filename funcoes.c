@@ -22,7 +22,7 @@
     string[i]  = '\0';
 }*/
 
-char *read_line(FILE *stream, int *isEof)
+/*char *read_line(FILE *stream, int *isEof)
 {
     char *linha = NULL;
     int tamanhoLinha = 0;
@@ -31,7 +31,7 @@ char *read_line(FILE *stream, int *isEof)
     {
         linha = realloc(linha, ++tamanhoLinha * sizeof(char));
         linha[tamanhoLinha - 1] = fgetc(stream);
-    } while (linha[tamanhoLinha - 1] != EOF && linha[tamanhoLinha - 1] != '\n');
+    } while (linha[tamanhoLinha - 1] != EOF  && linha[tamanhoLinha - 1] != '\r' && linha[tamanhoLinha - 1] != '\n');
     if (linha[tamanhoLinha - 1] == EOF)
     {
         linha[tamanhoLinha - 1] = '\0';
@@ -41,8 +41,59 @@ char *read_line(FILE *stream, int *isEof)
     {
         linha[tamanhoLinha - 1] = '\0';
     }
+    else if (linha[tamanhoLinha - 1] == '\r')
+    {
+        linha[tamanhoLinha - 1] = '\0';
+    }
+
 
     return linha;
+}*/
+char *read_line(FILE *stream, int *has_EOF)
+{
+    char c;
+    unsigned long int n_chars = 0;
+
+    char *line = NULL;
+
+    while ((c = fgetc(stream)) == '\n' || (c == '\r'))
+        ;
+
+    if (c != EOF)
+        ungetc(c, stream);
+
+    do
+    {
+        c = fgetc(stream);
+
+        if (n_chars % 50 == 0)
+        {
+            int new_size = (n_chars / 50 + 1) * 50 + 1;
+
+            line = (char *)realloc(line, (size_t)new_size * sizeof(char));
+        }
+
+        n_chars++;
+
+        if (c != '\n' && c != '\r' && c != EOF)
+        {
+            *(line + n_chars - 1) = c;
+
+            if (has_EOF)
+                *has_EOF = 0;
+        }
+        else
+        {
+            *(line + n_chars - 1) = '\0';
+
+            if (c == EOF && has_EOF)
+                *has_EOF = 1;
+        }
+    } while (c != '\n' && c != '\r' && c != EOF);
+
+    line = (char *)realloc(line, (size_t)(n_chars + 1));
+
+    return line;
 }
 
 // imprima para impressao do binario na tela
@@ -123,10 +174,8 @@ void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario)
     switch (tipoArquivo)
     {
     case 1:
-        copia_binario1(CSV, BIN);
-        fclose(BIN);
-        fclose(CSV);
-        binarioNaTela(nomeBinario);
+        copia_binario1(CSV, BIN, nomeBinario);
+
         break;
 
     case 2:
@@ -135,36 +184,33 @@ void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario)
     }
 }
 
-char *my_str_tok(char *string, char *sep)
+char *my_str_tok(char *str, char *delims)
 {
-    static char *src = NULL;
-    char *p, *ret = 0;
+    static char  *src = NULL;
+    char  *p,  *ret = 0;
 
-    if (string != NULL)
-        src = string;
+    if (str != NULL)
+        src = str;
 
-    if (src == NULL)
+    if (src == NULL || *src == '\0')    // Fix 1
         return NULL;
 
-    if ((p = strpbrk(src, sep)) != NULL)
+    ret = src;                          // Fix 2
+    if ((p = strpbrk(src, delims)) != NULL)
     {
-        *p = 0;
-        ret = src;
+        *p  = 0;
+        //ret = src;                    // Unnecessary
         src = ++p;
     }
-    else if (*src)
-    {
-        ret = src;
-        src = NULL;
-    }
+    else
+        src += strlen(src);
 
     return ret;
 }
 
-void copia_binario1(FILE *CSV, FILE *BIN)
+void copia_binario1(FILE *CSV, FILE *BIN, char *nomeBinario)
 {
     cabecalhoTipo1_t *cabecalho = inicia_cab_tipo1();
-    char *linha = NULL;
     escreve_cabecalho1_arquivo(cabecalho, BIN);
     int isEof = 0;
 
@@ -172,56 +218,68 @@ void copia_binario1(FILE *CSV, FILE *BIN)
     char *linha1 = read_line(CSV, &isEof);
     free(linha1);
 
-    dadosTipo1_t *dados = inicializa_dados_tipo1();
+    // char *linha = NULL;
     while (isEof == 0)
     {
-        linha = read_line(CSV, &isEof);
-
+        dadosTipo1_t *dados = inicializa_dados_tipo1();
+        char *linha = read_line(CSV, &isEof);
         char *token = my_str_tok(linha, ",");
+
+        // if(linha)
+        // free(linha);
+        // printf("id: %s\n", token);
         if (token != NULL)
-        {
             dados->id = atoi(token);
-        }
         int contador = 2;
 
         while (token != NULL)
         {
-            token = my_str_tok(NULL, ",");
+            token = my_str_tok(NULL, ",\n");
             if (contador == 2)
             {
-                //printf("ano: %s\n", token);
-                dados->ano = atoi(token);
+                // printf("ano: %s\n", token);
+                if (strlen(token) > 0)
+                    dados->ano = atoi(token);
             }
             if (contador == 3)
             {
-               // printf("cidade: %s\n", token);
-                dados->tamanhoCidade = strlen(token);
-                dados->cidade = malloc(sizeof(char) * dados->tamanhoCidade + 1);
-                strcpy(dados->cidade, token);
+                if (token != NULL)
+                {
+                    //printf("cidade: %lu\n", strlen(token));
+                    dados->tamanhoCidade = strlen(token);
+                    dados->cidade = malloc(sizeof(char) * dados->tamanhoCidade + 1);
+                    strcpy(dados->cidade, token);
+                }
             }
             if (contador == 4)
             {
-                //printf("qtd: %s\n", token);
-                dados->quantidade = atoi(token);
+                // printf("qtt: %s\n", token);
+                if (strlen(token) > 0)
+                    dados->quantidade = atoi(token);
             }
             if (contador == 5)
             {
-                //printf("sigla: %s\n", token);
+                // printf("sigla: %s\n", token);
                 strcpy(dados->sigla, token);
             }
             if (contador == 6)
             {
-                //printf("marca: %s\n", token);
-                dados->tamanhoMarca = strlen(token);
-                dados->marca = malloc(sizeof(char) * dados->tamanhoMarca + 1);
-                strcpy(dados->marca, token);
+                if (token != NULL)
+                {
+                    //printf("marca: %lu\n", strlen(token));
+                    dados->tamanhoMarca = strlen(token);
+                    dados->marca = malloc(sizeof(char) * dados->tamanhoMarca + 1);
+                    strcpy(dados->marca, token);
+                    //dados->marca = token;
+                }
             }
             if (contador == 7)
             {
-                //printf("modelo: %s\n", token);
-                // printf("len: %lu", strlen(token));
+                // printf("modelo: %s\n", token);
                 if (token != NULL)
                 {
+                    // printf("modelo: %s\n", token);
+                    // printf("len: %lu\n", strlen(token));
                     dados->tamanhoModelo = strlen(token);
                     dados->modelo = malloc(sizeof(char) * dados->tamanhoModelo + 1);
                     strcpy(dados->modelo, token);
@@ -229,9 +287,26 @@ void copia_binario1(FILE *CSV, FILE *BIN)
             }
             contador++;
         }
+        // printf("token %s\n", token);
+
         escreve_dados_tipo1(dados, BIN);
+        cabecalho->proxRRN = cabecalho->proxRRN + 1;
+        free(dados->marca);
+        free(dados->modelo);
+        free(dados->cidade);
+        free(dados->sigla);
+
+        free(dados);
+        free(token);
     }
-    free(linha);
+    cabecalho->status = 1;
+    escreve_cabecalho1_arquivo(cabecalho, BIN);
+
+    fclose(BIN);
+    fclose(CSV);
+    binarioNaTela(nomeBinario);
+    free(cabecalho);
+    // free(linha);
 }
 
 FILE *abre_CSV_leitura(char *nomeCSV)
@@ -248,9 +323,9 @@ FILE *abre_CSV_leitura(char *nomeCSV)
 
 FILE *abre_bin_escrita(char *nomeBin)
 {
-    FILE *fp;
+    FILE *fp = fopen(nomeBin, "wb");
 
-    if ((fp = fopen(nomeBin, "wb+")) == NULL)
+    if (fp == NULL)
     {
         printf("Falha no processamento do arquivo.\n");
         exit(EXIT_SUCCESS);
