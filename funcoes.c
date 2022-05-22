@@ -148,13 +148,52 @@ char *my_str_tok(char *str, char *delims)
     return ret;
 }
 
+void funcionalidade2(int tipoArq, char* nomeBinario){
+
+    FILE* BIN = abre_bin_leitura(nomeBinario);
+
+
+    if(tipoArq == 1){
+
+        cabecalho_t *cabecalho;
+        dados_t *dados;
+        int aux = 0;
+        cabecalho = inicia_cab();
+        ler_cab_arquivo(BIN, cabecalho, 1);
+
+        while(aux > cabecalho->proxRRN){
+            dados = inicializa_dados();
+            ler_dados_tipo1(BIN, dados);
+            imprimeDados(dados, cabecalho);
+            aux++;
+        }
+        return;
+    }
+
+    if(tipoArq == 2){
+
+        cabecalho_t *cabecalho;
+        dados_t *dados;
+        long long int aux = 190;
+        cabecalho = inicia_cab();
+        ler_cab_arquivo(BIN, cabecalho, 2);
+
+        while(aux < cabecalho->proxByteOffset){
+            dados = inicializa_dados();
+            aux = ler_dados_tipo2(BIN, dados, aux);
+            imprimeDados(dados, cabecalho);
+        }
+        return;
+    }
+}
+
 void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
 {
     cabecalho_t *cabecalho = inicia_cabecalho();
-    cabecalho->proxOffset = 0;
+    cabecalho->proxByteOffset = 0;
     escreve_cabecalho_arquivo(cabecalho, BIN, tipoArquivo);
     int isEof = 0;
-    cabecalho->proxOffset = 190;
+    cabecalho->proxByteOffset = 190;
 
     // Linha1 indica o cabeçalho do CSV, que não queremos.
     char *linha1 = read_line(CSV, &isEof);
@@ -231,7 +270,7 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
         }else if(tipoArquivo == 2){
             tamanhoDados = escreve_dados(dados, BIN, tipoArquivo);
             somaDados += tamanhoDados;
-            cabecalho->proxOffset = cabecalho->proxOffset + tamanhoDados;
+            cabecalho->proxByteOffset = cabecalho->proxByteOffset + tamanhoDados;
         }
         free(dados->marca);
         free(dados->modelo);
@@ -275,4 +314,55 @@ FILE *abre_bin_escrita(char *nomeBin)
     }
 
     return fp;
+}
+
+FILE* abre_bin_leitura(char *nomeBin){
+    FILE *fb;
+
+    if ((fb = fopen(nomeBin, "rb+")) == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    return fb;
+}
+
+void imprimeDados(dados_t *dados, cabecalho_t *cabecalho){
+
+
+    if(dados->removido == 1){
+        return;
+    }else{
+        if(dados->tamanhoMarca > 0){
+            printf("%s: %s\n", cabecalho->desMarca, dados->marca);
+        }else{
+            printf("%s: NAO PREENCHIDO\n", cabecalho->desMarca);
+        }
+
+        if(dados->tamanhoModelo > 0){
+            printf("%s: %s\n", cabecalho->desModelo, dados->modelo);
+        }else{
+            printf("%s: NAO PREENCHIDO\n", cabecalho->desModelo);
+        }
+
+        if(dados->ano > 0){
+            printf("%s: %s\n", cabecalho->desAno, dados->ano);
+        }else{
+            printf("%s: NAO PREENCHIDO\n", cabecalho->desAno);
+        }
+
+        if(dados->tamanhoCidade > 0){
+            printf("%s: %s\n", cabecalho->desNomeCidade, dados->cidade);
+        }else{
+            printf("%s: NAO PREENCHIDO\n", cabecalho->desNomeCidade);
+        }
+
+        if(dados->quantidade != -1){
+            printf("%s: %s\n", cabecalho->desQuantidade, dados->quantidade);
+        }else{
+            printf("%s: NAO PREENCHIDO\n", cabecalho->desNomeCidade);
+        }
+        printf("\n");
+    }
+    return;
 }

@@ -344,7 +344,6 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
     return 0;
 }
 
-
 /*
 //Ler dados do arquivo
 void ler_dados_tipo1(FILE *fp, dados_t *dados){

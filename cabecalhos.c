@@ -11,14 +11,14 @@ cabecalho_t *inicia_cabecalho()
     memcpy(cabecalho->desAno, "ANO DE FABRICACAO: ", 19);
     memcpy(cabecalho->desQuantidade, "QUANTIDADE DE VEICULOS: ", 24);
     memcpy(cabecalho->desEstado, "ESTADO: ", 8);
-    cabecalho->codNome = '0';
-    memcpy(cabecalho->desNome, "NOME DA CIDADE: ", 16);
+    cabecalho->codNomeCidade = '0';
+    memcpy(cabecalho->desNomeCidade, "NOME DA CIDADE: ", 16);
     cabecalho->codMarca = '1';
     memcpy(cabecalho->desMarca, "MARCA DO VEICULO: ", 18);
     cabecalho->codModelo = '2';
     memcpy(cabecalho->desModelo, "MODELO DO VEICULO: ", 19);
     cabecalho->proxRRN = 0;
-    cabecalho->proxOffset = 0;
+    cabecalho->proxByteOffset = 0;
     cabecalho->nroRegRemovidos = 0;
 
     return cabecalho;
@@ -41,8 +41,8 @@ void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo)
     fwrite(cabecalho->desAno, sizeof(char), 19, fp);
     fwrite(cabecalho->desQuantidade, sizeof(char), 24, fp);
     fwrite(cabecalho->desEstado, sizeof(char), 8, fp);
-    fwrite(&cabecalho->codNome, sizeof(char), 1, fp);
-    fwrite(cabecalho->desNome, sizeof(char), 16, fp);
+    fwrite(&cabecalho->codNomeCidade, sizeof(char), 1, fp);
+    fwrite(cabecalho->desNomeCidade, sizeof(char), 16, fp);
     fwrite(&cabecalho->codMarca, sizeof(char), 1, fp);
     fwrite(cabecalho->desMarca, sizeof(char), 18, fp);
     fwrite(&cabecalho->codModelo, sizeof(char), 1, fp);
@@ -51,7 +51,7 @@ void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo)
         fwrite(&cabecalho->proxRRN, sizeof(int), 1, fp);
     if (tipo == 2)
     {
-        fwrite(&cabecalho->proxOffset, sizeof(long long int), 1, fp);
+        fwrite(&cabecalho->proxByteOffset, sizeof(long long int), 1, fp);
     }
 
     fwrite(&cabecalho->nroRegRemovidos, sizeof(int), 1, fp);
@@ -79,7 +79,7 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
 
         // Pula 169 bytes, referentes aos códigos e descrições
         fseek(fp, 169, SEEK_CUR);
-        fread(&cabecalho->proxOffset, sizeof(long long int), 1, fp);
+        fread(&cabecalho->proxByteOffset, sizeof(long long int), 1, fp);
     }
 
     fread(&cabecalho->nroRegRemovidos, sizeof(int), 1, fp);

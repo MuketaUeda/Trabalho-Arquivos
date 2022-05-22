@@ -15,14 +15,14 @@ struct regCabTipo1{
     char desAno[19];
     char desQuantidade[24];
     char desEstado[8];
-    char codNome; //'0'
-    char desNome[16];
+    char codNomeCidade; //'0'
+    char desNomeCidade[16];
     char codMarca; //'1'
     char desMarca[18];
     char codModelo; //'2'
     char desModelo[19];
     int proxRRN; //inicia com zero
-    long long int proxOffset;
+    long long int proxByteOffset;
     int nroRegRemovidos; //inicia com zero
 };
 
