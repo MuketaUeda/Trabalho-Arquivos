@@ -5,10 +5,6 @@
 
 
 int main(){
-<<<<<<< HEAD
-=======
-
->>>>>>> 83ac9efa6e756ffba6e5e07e5431258c8f86d2a8
     int comando;
     char *tipoArq = (char *)malloc(sizeof(char)*10);
     char *NomeCSV = (char *)malloc(sizeof(char)*25);
@@ -16,16 +12,14 @@ int main(){
 
     scanf("%d", &comando);
     scanf("%s", tipoArq);
-
-    //printf("%s", tipoArq);
     
     int tipoArqInt;
     if(strcmp(tipoArq, "tipo1") == 0) tipoArqInt = 1;
     if(strcmp(tipoArq, "tipo2") == 0) tipoArqInt = 2;
 
     switch(comando){
-
         case 1:
+        //pronta
             scanf("%s", NomeCSV);
             scanf("%s", NomeBinario);
             funcionalidade1(tipoArqInt, NomeCSV, NomeBinario);
