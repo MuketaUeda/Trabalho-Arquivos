@@ -26,9 +26,10 @@ cabecalhoTipo1_t *inicia_cab_tipo1(){
 
 void escreve_cabecalho1_arquivo(cabecalhoTipo1_t *cabecalho, FILE *fp){
     fseek(fp, 0, SEEK_SET);
+    char st = '0';
     //Escrever no arquivo, *em ordem*, usando como base cada o numero de bytes de cada informacao
-
-    fwrite(&cabecalho->status, sizeof(char), 1, fp);
+    fwrite(&st, sizeof(char), 1, fp);
+    fwrite(&cabecalho->status, sizeof(char),1, fp);
     fwrite(&cabecalho->topo, sizeof(int),1, fp);
     fwrite(cabecalho->desc, sizeof(char), 40, fp);
     fwrite(cabecalho->desCodigo, sizeof(char), 22, fp);

@@ -64,7 +64,7 @@ void destruir_dados_tipo2(dadosTipo2_t *dados)
     free(dados);
     return;
 }
-int i = 1;
+
 void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
 {
     // cabecalhoTipo1_t *cabecalho = inicia_cab_tipo1();
@@ -141,7 +141,7 @@ void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
         tamanhoAtual += dados->tamanhoModelo;
     }
     //printf("tamanho modelo2: %d\n", dados->tamanhoModelo);
-
+/*
     printf("%d\n\n", i);
     i++;
     printf("tamano atual: %d\n", tamanhoAtual);
@@ -153,7 +153,7 @@ void escreve_dados_tipo1(dadosTipo1_t *dados, FILE *fp)
     printf("estado: %s\n", dados->sigla);
     printf("cidade: %s\n", dados->cidade);
     printf("marca: %s\n", dados->marca);
-    printf("modelo: %s\n", dados->modelo);
+    printf("modelo: %s\n", dados->modelo);*/
 
     char *lixo = (char *)malloc(97 - tamanhoAtual);
     for (int i = 0; i < (97 - tamanhoAtual); i++)

@@ -49,52 +49,7 @@ char *read_line(FILE *stream, int *isEof)
 
     return linha;
 }
-/*char *read_line(FILE *stream, int *has_EOF)
-{
-    char c;
-    unsigned long int n_chars = 0;
 
-    char *line = NULL;
-
-    while ((c = fgetc(stream)) == '\n' || (c == '\r'))
-        ;
-
-    if (c != EOF)
-        ungetc(c, stream);
-
-    do
-    {
-        c = fgetc(stream);
-
-        if (n_chars % 50 == 0)
-        {
-            int new_size = (n_chars / 50 + 1) * 50 + 1;
-
-            line = (char *)realloc(line, (size_t)new_size * sizeof(char));
-        }
-
-        n_chars++;
-
-        if (c != '\n' && c != '\r' && c != EOF)
-        {
-            *(line + n_chars - 1) = c;
-
-            if (has_EOF)
-                *has_EOF = 0;
-        }
-        else
-        {
-            *(line + n_chars - 1) = '\0';
-
-            if (c == EOF && has_EOF)
-                *has_EOF = 1;
-        }
-    } while (c != '\n' && c != '\r' && c != EOF);
-
-    line = (char *)realloc(line, (size_t)(n_chars + 1));
-
-    return line;
-}*/
 
 // imprima para impressao do binario na tela
 void binarioNaTela(char *nomeArquivoBinario)
