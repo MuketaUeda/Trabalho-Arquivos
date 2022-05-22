@@ -16,4 +16,4 @@ char *read_line(FILE *stream, int *isEof);
 char *my_str_tok(char *str, char *delims);
 void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario);
 void funcionalidade2(int tipoArq, char* nomeBinario);
-void funcionalidade4(FILE* BIN, char *nomeBinario, int RRN);
+void funcionalidade4(char *nomeBinario, int RRN);
