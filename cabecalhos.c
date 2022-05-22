@@ -84,6 +84,11 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
 
     fread(&cabecalho->nroRegRemovidos, sizeof(int), 1, fp);
 
+    if(cabecalho->status == '0'){
+		printf("Falha no processamento do arquivo.\n");
+		exit(EXIT_SUCCESS);
+	}
+
     return;
 }
 

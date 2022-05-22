@@ -158,7 +158,7 @@ void funcionalidade2(int tipoArq, char* nomeBinario){
         cabecalho_t *cabecalho;
         dados_t *dados;
         int aux = 0;
-        cabecalho = inicia_cab();
+        cabecalho = inicia_cabecalho();
         ler_cab_arquivo(BIN, cabecalho, 1);
 
         while(aux > cabecalho->proxRRN){
@@ -175,7 +175,7 @@ void funcionalidade2(int tipoArq, char* nomeBinario){
         cabecalho_t *cabecalho;
         dados_t *dados;
         long long int aux = 190;
-        cabecalho = inicia_cab();
+        cabecalho = inicia_cabecalho();
         ler_cab_arquivo(BIN, cabecalho, 2);
 
         while(aux < cabecalho->proxByteOffset){
@@ -185,7 +185,29 @@ void funcionalidade2(int tipoArq, char* nomeBinario){
         }
         return;
     }
+    fclose(BIN);
 }
+
+void funcionalidade4(int tipoArq, char *nomeBinario, int RRN){
+
+    FILE* BIN = abre_bin_leitura(nomeBinario);
+    dados_t *dados;
+    cabecalho_t *cabecalho;
+    cabecalho = inicia_cabecalho();
+    dados = inicializa_dados();
+    ler_cab_arquivo(BIN, cabecalho, 1);
+
+    if(RRN >= cabecalho->proxRRN || RRN < 0){
+        printf("Registro inexistente.\n");
+        fclose(BIN);
+        return;
+    }
+    posArq(BIN, dados, RRN);
+    imprimeDados(dados, cabecalho);
+    fclose(BIN);
+    return;
+}
+
 
 void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
 {
@@ -325,6 +347,16 @@ FILE* abre_bin_leitura(char *nomeBin){
     }
 
     return fb;
+}
+
+void posArq(FILE *BIN, dados_t *dados, int RRN){
+
+    long long int aux;
+    aux = 182 + (RRN*97);
+
+    fseek(BIN, aux, SEEK_SET);
+    ler_dados_tipo1(BIN, dados);
+    return;
 }
 
 void imprimeDados(dados_t *dados, cabecalho_t *cabecalho){

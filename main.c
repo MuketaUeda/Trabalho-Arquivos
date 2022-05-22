@@ -39,9 +39,15 @@ int main(){
             break;
 
         case 4:
+            int RRN = 0;
             scanf("%s", NomeBinario);
+            scanf("%d", &RRN);
             //printf("%s\n", NomeBinario);
-            //funcionalidade4(tipoArqInt, NomeBinario);
+            if(tipoArqInt == 2){
+                printf("Falha no processamento do arquivo.\n");
+                break;
+            }
+            //funcionalidade4(tipoArqInt, NomeBinario, RRN);
             break;
 
         default:
