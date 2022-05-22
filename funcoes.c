@@ -117,15 +117,13 @@ void binarioNaTela(char *nomeArquivoBinario)
 // }
 //
 
-void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario)
-{
+void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario){
     FILE *CSV = abre_CSV_leitura(nomeCSV);
     FILE *BIN = abre_bin_escrita(nomeBinario);
     copia_binario(CSV, BIN, nomeBinario, tipoArquivo);
 }
 
-char *my_str_tok(char *str, char *delims)
-{
+char *my_str_tok(char *str, char *delims){
     static char *src = NULL;
     char *p, *ret = 0;
 
@@ -151,41 +149,59 @@ char *my_str_tok(char *str, char *delims)
 void funcionalidade2(int tipoArq, char* nomeBinario){
 
     FILE* BIN = abre_bin_leitura(nomeBinario);
-
+    cabecalho_t *cabecalho;
+    dados_t *dados;
+    cabecalho = inicia_cabecalho();
 
     if(tipoArq == 1){
 
-        cabecalho_t *cabecalho;
-        dados_t *dados;
         int aux = 0;
-        cabecalho = inicia_cabecalho();
         ler_cab_arquivo(BIN, cabecalho, 1);
+        if(cabecalho->proxRRN != 0){
+            while(aux > cabecalho->proxRRN){
+                dados = inicializa_dados();
+                ler_dados_tipo1(BIN, dados);
+                imprimeDados(dados, cabecalho);
 
-        while(aux > cabecalho->proxRRN){
-            dados = inicializa_dados();
-            ler_dados_tipo1(BIN, dados);
-            imprimeDados(dados, cabecalho);
-            aux++;
+                free(dados->marca);
+                free(dados->modelo);
+                free(dados->cidade);
+                free(dados->sigla);
+                //free(dados);
+                aux++;
+            }
+        }else{
+            printf("Registro inexistente\n");
+            fclose(BIN);
+            return;
         }
-        return;
     }
 
     if(tipoArq == 2){
 
-        cabecalho_t *cabecalho;
-        dados_t *dados;
         long long int aux = 190;
-        cabecalho = inicia_cabecalho();
         ler_cab_arquivo(BIN, cabecalho, 2);
+
+        if(cabecalho->proxByteOffset <= aux){
+            printf("Registro inexistente\n");
+            fclose(BIN);
+            return;
+        }
 
         while(aux < cabecalho->proxByteOffset){
             dados = inicializa_dados();
             aux = ler_dados_tipo2(BIN, dados, aux);
             imprimeDados(dados, cabecalho);
+            free(dados->marca);
+            free(dados->modelo);
+            free(dados->cidade);
+            free(dados->sigla);
+            //free(dados);
         }
-        return;
     }
+    free(cabecalho);
     fclose(BIN);
+    return;
 }
 
 void funcionalidade4(int tipoArq, char *nomeBinario, int RRN){
@@ -209,8 +225,7 @@ void funcionalidade4(int tipoArq, char *nomeBinario, int RRN){
 }
 
 
-void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
-{
+void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo){
     cabecalho_t *cabecalho = inicia_cabecalho();
     cabecalho->proxByteOffset = 0;
     escreve_cabecalho_arquivo(cabecalho, BIN, tipoArquivo);
@@ -313,8 +328,7 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
     // free(linha);
 }
 
-FILE *abre_CSV_leitura(char *nomeCSV)
-{
+FILE *abre_CSV_leitura(char *nomeCSV){
     FILE *fp = fopen(nomeCSV, "r");
     if (fp == NULL)
     {
@@ -325,8 +339,7 @@ FILE *abre_CSV_leitura(char *nomeCSV)
     return fp;
 }
 
-FILE *abre_bin_escrita(char *nomeBin)
-{
+FILE *abre_bin_escrita(char *nomeBin){
     FILE *fp = fopen(nomeBin, "wb");
 
     if (fp == NULL)
@@ -362,7 +375,7 @@ void posArq(FILE *BIN, dados_t *dados, int RRN){
 void imprimeDados(dados_t *dados, cabecalho_t *cabecalho){
 
 
-    if(dados->removido == 1){
+    if(dados->removido == '1'){
         return;
     }else{
         if(dados->tamanhoMarca > 0){
@@ -392,7 +405,7 @@ void imprimeDados(dados_t *dados, cabecalho_t *cabecalho){
         if(dados->quantidade != -1){
             printf("%s: %s\n", cabecalho->desQuantidade, dados->quantidade);
         }else{
-            printf("%s: NAO PREENCHIDO\n", cabecalho->desNomeCidade);
+            printf("%s: NAO PREENCHIDO\n", cabecalho->desQuantidade);
         }
         printf("\n");
     }
