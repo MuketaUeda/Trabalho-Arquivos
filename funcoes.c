@@ -1,26 +1,4 @@
 #include "funcoes.h"
-#include "cabecalhos.h"
-#include "dados.h"
-
-// funcao de leitura dinamica
-/*void readline(char* string){
-    char c = 0;
-
-    do{
-        c = (char) getchar();
-
-    } while(c == '\n' || c == '\r');
-
-    int i = 0;
-
-    do{
-        string[i] = c;
-        i++;
-        c = getchar();
-    } while(c != '\n' && c != '\r');
-
-    string[i]  = '\0';
-}*/
 
 char *read_line(FILE *stream, int *isEof)
 {
@@ -117,13 +95,16 @@ void binarioNaTela(char *nomeArquivoBinario)
 // }
 //
 
-void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario){
+void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario)
+{
     FILE *CSV = abre_CSV_leitura(nomeCSV);
     FILE *BIN = abre_bin_escrita(nomeBinario);
     copia_binario(CSV, BIN, nomeBinario, tipoArquivo);
 }
 
-char *my_str_tok(char *str, char *delims){
+// arrumar
+char *my_str_tok(char *str, char *delims)
+{
     static char *src = NULL;
     char *p, *ret = 0;
 
@@ -146,77 +127,84 @@ char *my_str_tok(char *str, char *delims){
     return ret;
 }
 
-void funcionalidade2(int tipoArq, char* nomeBinario){
+void funcionalidade2(int tipoArq, char *nomeBinario)
+{
 
-    FILE* BIN = abre_bin_leitura(nomeBinario);
+    FILE *BIN = abre_bin_leitura(nomeBinario);
     cabecalho_t *cabecalho;
-    dados_t *dados;
+    dados_t *dados = inicializa_dados();
     cabecalho = inicia_cabecalho();
-
-    if(tipoArq == 1){
+    int tamanhoTotal = 0;
+    if (tipoArq == 1)
+    {
 
         int aux = 0;
         ler_cab_arquivo(BIN, cabecalho, 1);
-        if(cabecalho->proxRRN != 0){
-            while(aux > cabecalho->proxRRN){
+        if (cabecalho->proxRRN != 0)
+        {
+
+            while (aux < cabecalho->proxRRN)
+            {
                 dados = inicializa_dados();
                 ler_dados_tipo1(BIN, dados);
                 imprimeDados(dados, cabecalho);
-
-                free(dados->marca);
-                free(dados->modelo);
-                free(dados->cidade);
-                free(dados->sigla);
-                //free(dados);
                 aux++;
             }
-        }else{
+        }
+        else
+        {
             printf("Registro inexistente\n");
             fclose(BIN);
             return;
         }
     }
 
-    if(tipoArq == 2){
+    if (tipoArq == 2)
+    {
 
         long long int aux = 190;
         ler_cab_arquivo(BIN, cabecalho, 2);
 
-        if(cabecalho->proxByteOffset <= aux){
+        if (cabecalho->proxByteOffset <= aux)
+        {
             printf("Registro inexistente\n");
             fclose(BIN);
             return;
         }
 
-        while(aux < cabecalho->proxByteOffset){
+        while (aux < cabecalho->proxByteOffset)
+        {
             dados = inicializa_dados();
-            aux = ler_dados_tipo2(BIN, dados, aux);
+            aux += ler_dados_tipo2(BIN, dados, aux);
             imprimeDados(dados, cabecalho);
-            free(dados->marca);
-            free(dados->modelo);
-            free(dados->cidade);
-            free(dados->sigla);
-            //free(dados);
         }
     }
+
+    free(dados->marca);
+    free(dados->modelo);
+    free(dados->cidade);
+    free(dados->sigla);
+    free(dados);
     free(cabecalho);
     fclose(BIN);
     return;
 }
 
-void funcionalidade4(char *nomeBinario, int RRN){
+void funcionalidade4(char *nomeBinario, int RRN)
+{
 
-    FILE* BIN = abre_bin_leitura(nomeBinario);
+    FILE *BIN = abre_bin_leitura(nomeBinario);
     dados_t *dados;
     cabecalho_t *cabecalho;
     cabecalho = inicia_cabecalho();
     dados = inicializa_dados();
     ler_cab_arquivo(BIN, cabecalho, 1);
 
-    if(RRN >= cabecalho->proxRRN || RRN < 0){
+    if (RRN >= cabecalho->proxRRN || RRN < 0)
+    {
         printf("Registro inexistente.\n");
         fclose(BIN);
-        return;
+        exit(0);
     }
     posArq(BIN, dados, RRN);
     imprimeDados(dados, cabecalho);
@@ -224,8 +212,8 @@ void funcionalidade4(char *nomeBinario, int RRN){
     return;
 }
 
-
-void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo){
+void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
+{
     cabecalho_t *cabecalho = inicia_cabecalho();
     cabecalho->proxByteOffset = 0;
     escreve_cabecalho_arquivo(cabecalho, BIN, tipoArquivo);
@@ -304,7 +292,9 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo){
         {
             escreve_dados(dados, BIN, tipoArquivo);
             cabecalho->proxRRN = cabecalho->proxRRN + 1;
-        }else if(tipoArquivo == 2){
+        }
+        else if (tipoArquivo == 2)
+        {
             tamanhoDados = escreve_dados(dados, BIN, tipoArquivo);
             somaDados += tamanhoDados;
             cabecalho->proxByteOffset = cabecalho->proxByteOffset + tamanhoDados;
@@ -328,84 +318,106 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo){
     // free(linha);
 }
 
-FILE *abre_CSV_leitura(char *nomeCSV){
+FILE *abre_CSV_leitura(char *nomeCSV)
+{
     FILE *fp = fopen(nomeCSV, "r");
     if (fp == NULL)
     {
         printf("Falha no processamento do arquivo.\n");
-        exit(EXIT_SUCCESS);
+        exit(0);
     }
 
     return fp;
 }
 
-FILE *abre_bin_escrita(char *nomeBin){
+FILE *abre_bin_escrita(char *nomeBin)
+{
     FILE *fp = fopen(nomeBin, "wb");
 
     if (fp == NULL)
     {
         printf("Falha no processamento do arquivo.\n");
-        exit(EXIT_SUCCESS);
+        exit(0);
     }
 
     return fp;
 }
 
-FILE* abre_bin_leitura(char *nomeBin){
-    FILE *fb;
+FILE *abre_bin_leitura(char *nomeBin)
+{
+    FILE *fb = fopen(nomeBin, "rb+");
 
-    if ((fb = fopen(nomeBin, "rb+")) == NULL){
+    if (fb == NULL)
+    {
         printf("Falha no processamento do arquivo.\n");
-        exit(EXIT_SUCCESS);
+        exit(0);
     }
 
     return fb;
 }
 
-void posArq(FILE *BIN, dados_t *dados, int RRN){
+void posArq(FILE *BIN, dados_t *dados, int RRN)
+{
 
     long long int aux;
-    aux = 182 + (RRN*97);
+    aux = 182 + (RRN * 97);
 
     fseek(BIN, aux, SEEK_SET);
     ler_dados_tipo1(BIN, dados);
     return;
 }
 
-void imprimeDados(dados_t *dados, cabecalho_t *cabecalho){
+void imprimeDados(dados_t *dados, cabecalho_t *cabecalho)
+{
 
-
-    if(dados->removido == '1'){
+    if (dados->removido == '1')
+    {
         return;
-    }else{
-        if(dados->tamanhoMarca > 0){
-            printf("%s: %s\n", cabecalho->desMarca, dados->marca);
-        }else{
-            printf("%s: NAO PREENCHIDO\n", cabecalho->desMarca);
+    }
+    else
+    {
+        if (dados->tamanhoMarca > 0)
+        {
+            printf("%s%s\n", cabecalho->desMarca, dados->marca);
+        }
+        else
+        {
+            printf("%sNAO PREENCHIDO\n", cabecalho->desMarca);
         }
 
-        if(dados->tamanhoModelo > 0){
-            printf("%s: %s\n", cabecalho->desModelo, dados->modelo);
-        }else{
-            printf("%s: NAO PREENCHIDO\n", cabecalho->desModelo);
+        if (dados->tamanhoModelo > 0)
+        {
+            printf("%s%s\n", cabecalho->desModelo, dados->modelo);
+        }
+        else
+        {
+            printf("%sNAO PREENCHIDO\n", cabecalho->desModelo);
+        }
+        if (dados->ano > 0)
+        {
+            printf("%s%d\n", cabecalho->desAno, dados->ano);
+        }
+        else
+        {
+            printf("%sNAO PREENCHIDO\n", cabecalho->desAno);
         }
 
-        if(dados->ano > 0){
-            printf("%s: %s\n", cabecalho->desAno, dados->ano);
-        }else{
-            printf("%s: NAO PREENCHIDO\n", cabecalho->desAno);
+        if (dados->tamanhoCidade > 0)
+        {
+            printf("%s%s\n", cabecalho->desNomeCidade, dados->cidade);
+        }
+        else
+        {
+            printf("%sNAO PREENCHIDO\n", cabecalho->desNomeCidade);
         }
 
-        if(dados->tamanhoCidade > 0){
-            printf("%s: %s\n", cabecalho->desNomeCidade, dados->cidade);
-        }else{
-            printf("%s: NAO PREENCHIDO\n", cabecalho->desNomeCidade);
+        if (dados->quantidade != -1)
+        {
+            printf("%s%d\n", cabecalho->desQuantidade, dados->quantidade);
         }
-
-        if(dados->quantidade != -1){
-            printf("%s: %s\n", cabecalho->desQuantidade, dados->quantidade);
-        }else{
-            printf("%s: NAO PREENCHIDO\n", cabecalho->desQuantidade);
+        else
+        {
+            printf("%sNAO PREENCHIDO\n", cabecalho->desQuantidade);
         }
         printf("\n");
     }

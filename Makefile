@@ -1,9 +1,9 @@
 
 all:
-	gcc *.c -o entrega1 -g
+	gcc -o programaTrab *.c
 
 run:
-	./entrega1
+	./programaTrab
 
 val: all
 	valgrind --leak-check=full ./entrega1

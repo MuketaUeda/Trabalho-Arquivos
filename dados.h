@@ -26,27 +26,6 @@ struct regDados{
 
 dados_t *inicializa_dados();
 void destruir_dados_tipo1(dados_t *dados);
-//void escreve_dados_tipo1(dados_t *dados, FILE *fp);
-//int escreve_dados_tipo2(dados_t *dados, FILE *fp);
 int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo);
-int ler_dados_tipo1(FILE *fp, dados_t *dados);
-
-/*typedef struct regDados2 dadosTipo2_t;
-dadosTipo2_t *inicializa_dados_tipo2();
-void destruir_dados_tipo2(dadosTipo2_t *dados);
-int ler_dados_tipo2(FILE *fp, dados_t *dados);
-*/
-/*struct regDados2{
-    int id;
-    int ano;
-    int quantidade;
-    char *sigla; //2 bytes
-    char *cidade;
-    char *marca;
-    char *modelo;
-    int tamanhoModelo;
-    int tamanhoMarca;
-    int tamanhoCidade;
-    char removido;
-    long long int prox;
-};*/
+void ler_dados_tipo1(FILE *fp, dados_t *dados);
+int ler_dados_tipo2(FILE* fp, dados_t *dados, long long int aux);

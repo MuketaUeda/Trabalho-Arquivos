@@ -6,17 +6,17 @@ cabecalho_t *inicia_cabecalho()
     cabecalho_t *cabecalho = (cabecalho_t *)malloc(1 * sizeof(cabecalho_t));
     cabecalho->status = '0';
     cabecalho->topo = -1;
-    memcpy(cabecalho->desc, "LISTAGEM DA FROTA DOS VEICULOS NO BRASIL", 40);
-    memcpy(cabecalho->desCodigo, "CODIGO IDENTIFICADOR: ", 22);
-    memcpy(cabecalho->desAno, "ANO DE FABRICACAO: ", 19);
-    memcpy(cabecalho->desQuantidade, "QUANTIDADE DE VEICULOS: ", 24);
-    memcpy(cabecalho->desEstado, "ESTADO: ", 8);
+    strcpy(cabecalho->desc, "LISTAGEM DA FROTA DOS VEICULOS NO BRASIL");
+    strcpy(cabecalho->desCodigo, "CODIGO IDENTIFICADOR: ");
+    strcpy(cabecalho->desAno, "ANO DE FABRICACAO: ");
+    strcpy(cabecalho->desQuantidade, "QUANTIDADE DE VEICULOS: ");
+    strcpy(cabecalho->desEstado, "ESTADO: ");
     cabecalho->codNomeCidade = '0';
-    memcpy(cabecalho->desNomeCidade, "NOME DA CIDADE: ", 16);
+    strcpy(cabecalho->desNomeCidade, "NOME DA CIDADE: ");
     cabecalho->codMarca = '1';
-    memcpy(cabecalho->desMarca, "MARCA DO VEICULO: ", 18);
+    strcpy(cabecalho->desMarca, "MARCA DO VEICULO: ");
     cabecalho->codModelo = '2';
-    memcpy(cabecalho->desModelo, "MODELO DO VEICULO: ", 19);
+    strcpy(cabecalho->desModelo, "MODELO DO VEICULO: ");
     cabecalho->proxRRN = 0;
     cabecalho->proxByteOffset = 0;
     cabecalho->nroRegRemovidos = 0;
@@ -27,15 +27,13 @@ cabecalho_t *inicia_cabecalho()
 void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo)
 {
     fseek(fp, 0, SEEK_SET);
-    // char st = '0';
     //  Escrever no arquivo, *em ordem*, usando como base cada o numero de bytes de cada informacao
-    // fwrite(&st, sizeof(char), 1, fp);
-    //cabecalho->status = '1';
     fwrite(&cabecalho->status, sizeof(char), 1, fp);
     if (tipo == 1)
         fwrite(&cabecalho->topo, sizeof(int), 1, fp);
     else if (tipo == 2)
         fwrite(&cabecalho->topo, sizeof(long long int), 1, fp);
+
     fwrite(cabecalho->desc, sizeof(char), 40, fp);
     fwrite(cabecalho->desCodigo, sizeof(char), 22, fp);
     fwrite(cabecalho->desAno, sizeof(char), 19, fp);
@@ -75,7 +73,7 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
     }
     else if (tipo == 2)
     {
-        fread(&cabecalho->topo, sizeof(char), 1, fp);
+        fread(&cabecalho->topo, sizeof(long long int), 1, fp);
 
         // Pula 169 bytes, referentes aos códigos e descrições
         fseek(fp, 169, SEEK_CUR);
@@ -86,27 +84,11 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
 
     if(cabecalho->status == '0'){
 		printf("Falha no processamento do arquivo.\n");
-		exit(EXIT_SUCCESS);
+		exit(0);
 	}
 
     return;
 }
-
-
-// Ler informações referentes ao cabeçalho 1 de um arquivo
-/*void ler_cab_tipo2_arquivo(FILE *fp, cabecalhoTipo2_t *cabecalho)
-{
-    fseek(fp, 0, SEEK_SET);
-    fread(&cabecalho->status, sizeof(char), 1, fp);
-    fread(&cabecalho->topo, sizeof(char), 1, fp);
-
-    // Pula 169 bytes, referentes aos códigos e descrições
-    fseek(fp, 169, SEEK_CUR);
-    fread(&cabecalho->proxByteOffset, sizeof(char), 1, fp);
-    fread(&cabecalho->nroRegRemovidos, sizeof(char), 1, fp);
-
-    return;
-}*/
 
 void destroi_cabecalho(cabecalho_t *cabecalho)
 {

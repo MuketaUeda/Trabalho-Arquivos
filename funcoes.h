@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-
+#include "dados.h"
+#include "cabecalhos.h"
 
 void readline(char* string);
 void binarioNaTela(char *nomeArquivoBinario);

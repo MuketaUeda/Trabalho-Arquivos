@@ -9,6 +9,7 @@ int main(){
     char *tipoArq = (char *)malloc(sizeof(char)*10);
     char *NomeCSV = (char *)malloc(sizeof(char)*25);
     char *NomeBinario = (char *)malloc(sizeof(char)*25);
+    int RRN = 0;
 
     scanf("%d", &comando);
     scanf("%s", tipoArq);
@@ -39,7 +40,6 @@ int main(){
             break;
 
         case 4:
-            int RRN = 0;
             scanf("%s", NomeBinario);
             scanf("%d", &RRN);
             //printf("%s\n", NomeBinario);
