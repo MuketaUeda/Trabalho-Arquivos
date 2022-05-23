@@ -286,8 +286,9 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados, long long int aux)
             if (tamanhoElemento > 0)
             {
                 dados->tamanhoCidade = tamanhoElemento;
-                dados->cidade = (char *)malloc(dados->tamanhoCidade * sizeof(char));
+                dados->cidade = (char *)malloc(dados->tamanhoCidade + 1 * sizeof(char));
                 dados->cidade = elemento;
+                dados->cidade[tamanhoElemento] = '\0';
             }
         }
         if (codigoElemento == '1')
@@ -295,8 +296,9 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados, long long int aux)
             if (tamanhoElemento > 0)
             {
                 dados->tamanhoMarca = tamanhoElemento;
-                dados->marca = (char *)malloc(dados->tamanhoMarca * sizeof(char));
+                dados->marca = (char *)malloc(dados->tamanhoMarca + 1* sizeof(char));
                 dados->marca = elemento;
+                dados->marca[tamanhoElemento] = '\0';
             }
         }
         if (codigoElemento == '2')
@@ -304,8 +306,9 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados, long long int aux)
             if (tamanhoElemento > 0)
             {
                 dados->tamanhoModelo = tamanhoElemento;
-                dados->modelo = (char *)malloc(dados->tamanhoModelo * sizeof(char));
+                dados->modelo = (char *)malloc(dados->tamanhoModelo + 1 * sizeof(char));
                 dados->modelo = elemento;
+                dados->modelo[tamanhoElemento] = '\0';
             }
         }
     }
