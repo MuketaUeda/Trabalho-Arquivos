@@ -126,12 +126,10 @@ char *my_str_tok(char *str, char *delims)
     if ((p = strpbrk(src, delims)) != NULL)
     {
         *p = 0;
-        // ret = src;                    // Unnecessary
         src = ++p;
     }
     else
         src += strlen(src);
-
     return ret;
 }
 
@@ -140,7 +138,7 @@ void funcionalidade2(int tipoArq, char *nomeBinario)
 
     FILE *BIN = abre_bin_leitura(nomeBinario);
     cabecalho_t *cabecalho;
-    dados_t *dados = inicializa_dados();
+    //dados_t *dados = inicializa_dados();
     cabecalho = inicia_cabecalho();
     int tamanhoTotal = 0;
     if (tipoArq == 1)
@@ -153,9 +151,10 @@ void funcionalidade2(int tipoArq, char *nomeBinario)
 
             while (aux < cabecalho->proxRRN)
             {
-                dados = inicializa_dados();
+                dados_t *dados = inicializa_dados();
                 ler_dados_tipo1(BIN, dados);
                 imprimeDados(dados, cabecalho);
+                liberaDados(dados);
                 aux++;
             }
         }
@@ -182,17 +181,12 @@ void funcionalidade2(int tipoArq, char *nomeBinario)
 
         while (aux < cabecalho->proxByteOffset)
         {
-            dados = inicializa_dados();
+            dados_t *dados = inicializa_dados();
             aux += ler_dados_tipo2(BIN, dados, aux);
             imprimeDados(dados, cabecalho);
+            liberaDados(dados);
         }
     }
-
-    free(dados->marca);
-    free(dados->modelo);
-    free(dados->cidade);
-    free(dados->sigla);
-    free(dados);
     free(cabecalho);
     fclose(BIN);
     return;
@@ -201,16 +195,16 @@ void funcionalidade2(int tipoArq, char *nomeBinario)
 void funcionalidade3(int tipoArquivo, char *nomeBinario, int n)
 {
     FILE *BIN = abre_bin_leitura(nomeBinario);
-    char **nomeCampos = (char **)malloc(n * sizeof(char));
-    char **valorCampos = (char **)malloc(n * sizeof(char));
+    char **nomeCampos = NULL;
+    char **valorCampos = NULL;
+    nomeCampos = (char **)malloc(n * sizeof(char*));
+    valorCampos = (char **)malloc(n * sizeof(char*));
     for (int i = 0; i < n; i++)
     {
-        nomeCampos[i] = (char *)malloc(10 * sizeof(char));
-        valorCampos[i] = (char *)malloc(25 * sizeof(char));
+        nomeCampos[i] = (char *)malloc(15 * sizeof(char));
+        valorCampos[i] = (char *)malloc(30 * sizeof(char));
         scanf("%s", nomeCampos[i]);
         scan_quote_string(valorCampos[i]);
-        // printf("vim\n");
-        // printf("valor: %s\n len: %lu\n", valorCampos[i], strlen(valorCampos[i]));
     }
     // Análise do tipo do arquivo, para fazermos as buscas parametrizadas
     switch (tipoArquivo)
@@ -227,16 +221,41 @@ void funcionalidade3(int tipoArquivo, char *nomeBinario, int n)
         printf("Tipo de arquivo não existente\n");
         break;
     }
-
+    
     for (int i = 0; i < n; i++)
     {
         free(nomeCampos[i]);
         free(valorCampos[i]);
     }
+
     free(nomeCampos);
     free(valorCampos);
 
     // free(nomeBinario);
+    fclose(BIN);
+    return;
+}
+
+void funcionalidade4(char *nomeBinario, int RRN)
+{
+
+    FILE *BIN = abre_bin_leitura(nomeBinario);
+    dados_t *dados;
+    cabecalho_t *cabecalho;
+    cabecalho = inicia_cabecalho();
+    dados = inicializa_dados();
+    ler_cab_arquivo(BIN, cabecalho, 1);
+
+    if (RRN >= cabecalho->proxRRN || RRN < 0)
+    {
+        printf("Registro inexistente.\n");
+        fclose(BIN);
+        exit(0);
+    }
+    posArq(BIN, dados, RRN);
+    imprimeDados(dados, cabecalho);
+    liberaDados(dados);
+    free(cabecalho);
     fclose(BIN);
     return;
 }
@@ -246,17 +265,18 @@ void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos,
     // Vamos primeiro percorrer o primeiro cabeçalho. Só para chegarmos nos dados e pegarmos alguns valores
     cabecalho_t *cabecalho = inicia_cabecalho();
     ler_cab_arquivo(BIN, cabecalho, 1);
+     dados_t *dados = NULL;
 
     int count = 0;
     int registroEncontrado = 0;
     while (count < cabecalho->proxRRN)
     {
-        dados_t *dados = inicializa_dados();
+        dados = inicializa_dados();
         ler_dados_tipo1(BIN, dados);
 
         if (dados->removido == 1)
         {
-            free(dados);
+            liberaDados(dados);
             continue;
         }
 
@@ -333,11 +353,14 @@ void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos,
             registroEncontrado = 1;
         }
         count++;
+        liberaDados(dados);
     }
     if (registroEncontrado == 0)
     {
         printf("Registro inexistente\n");
     }
+    free(cabecalho);
+    return;
 }
 
 void busca_parametrizada_tipo2(FILE *BIN, char **nomeCampos, char **valorCampos, int n)
@@ -440,27 +463,6 @@ void busca_parametrizada_tipo2(FILE *BIN, char **nomeCampos, char **valorCampos,
 }
 
 
-void funcionalidade4(char *nomeBinario, int RRN)
-{
-
-    FILE *BIN = abre_bin_leitura(nomeBinario);
-    dados_t *dados;
-    cabecalho_t *cabecalho;
-    cabecalho = inicia_cabecalho();
-    dados = inicializa_dados();
-    ler_cab_arquivo(BIN, cabecalho, 1);
-
-    if (RRN >= cabecalho->proxRRN || RRN < 0)
-    {
-        printf("Registro inexistente.\n");
-        fclose(BIN);
-        exit(0);
-    }
-    posArq(BIN, dados, RRN);
-    imprimeDados(dados, cabecalho);
-    fclose(BIN);
-    return;
-}
 
 void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
 {
@@ -506,6 +508,7 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
                     dados->tamanhoCidade = strlen(token);
                     dados->cidade = malloc(sizeof(char) * dados->tamanhoCidade + 1);
                     strcpy(dados->cidade, token);
+                    dados->cidade[dados->tamanhoCidade] = '\0';
                 }
             }
             if (contador == 4)
@@ -523,6 +526,7 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
                     dados->tamanhoMarca = strlen(token);
                     dados->marca = malloc(sizeof(char) * dados->tamanhoMarca + 1);
                     strcpy(dados->marca, token);
+                    dados->marca[dados->tamanhoMarca] = '\0';
                 }
             }
             if (contador == 7)
@@ -532,6 +536,7 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
                     dados->tamanhoModelo = strlen(token);
                     dados->modelo = malloc(sizeof(char) * dados->tamanhoModelo + 1);
                     strcpy(dados->modelo, token);
+                    dados->modelo[dados->tamanhoModelo] = '\0';
                 }
             }
             contador++;
@@ -549,13 +554,9 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
             somaDados += tamanhoDados;
             cabecalho->proxByteOffset = cabecalho->proxByteOffset + tamanhoDados;
         }
-        free(dados->marca);
-        free(dados->modelo);
-        free(dados->cidade);
-        free(dados->sigla);
-
-        free(dados);
+        liberaDados(dados);
         free(token);
+        free(linha);
     }
 
     cabecalho->status = '1';
@@ -565,7 +566,6 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
     fclose(CSV);
     binarioNaTela(nomeBinario);
     free(cabecalho);
-    // free(linha);
 }
 
 FILE *abre_CSV_leitura(char *nomeCSV)
@@ -670,5 +670,14 @@ void imprimeDados(dados_t *dados, cabecalho_t *cabecalho)
         }
         printf("\n");
     }
+    return;
+}
+
+void liberaDados(dados_t *dados){
+    free(dados->cidade);
+    free(dados->marca);
+    free(dados->modelo);
+    free(dados->sigla);
+    free(dados);
     return;
 }

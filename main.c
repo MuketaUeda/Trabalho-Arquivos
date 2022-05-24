@@ -8,19 +8,20 @@ int main()
     int comando;
     char *tipoArq = (char *)malloc(sizeof(char) * 10);
     char *NomeCSV = (char *)malloc(sizeof(char) * 25);
-    char *NomeBinario = (char *)malloc(sizeof(char) * 25);
+    char *NomeBinario = NULL;
+    NomeBinario = (char *)malloc(sizeof(char) * 25);
     int RRN = 0;
+    int n = 0;
 
     scanf("%d", &comando);
     scanf("%s", tipoArq);
 
-    int tipoArqInt;
+    int tipoArqInt = 0;
     if (strcmp(tipoArq, "tipo1") == 0)
         tipoArqInt = 1;
     if (strcmp(tipoArq, "tipo2") == 0)
         tipoArqInt = 2;
 
-    int n;
     switch (comando)
     {
     case 1:
@@ -41,7 +42,6 @@ int main()
         scanf("%d", &n);
         //printf("%d\n", n);
         funcionalidade3(tipoArqInt, NomeBinario, n);
-
         break;
 
     case 4:

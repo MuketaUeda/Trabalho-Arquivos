@@ -5,6 +5,7 @@
 #include "cabecalhos.h"
 
 void readline(char* string);
+void liberaDados(dados_t * dados);
 void binarioNaTela(char *nomeArquivoBinario);
 void scan_quote_string(char *str);
 FILE* abre_CSV_leitura(char* nomeCSV);

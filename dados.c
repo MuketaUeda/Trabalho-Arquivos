@@ -10,7 +10,8 @@ dados_t *inicializa_dados()
     dados->id = -1;
     dados->ano = -1;
     dados->quantidade = -1;
-    dados->sigla = (char *)malloc(2 * sizeof(char));
+    dados->sigla = (char *)malloc(3 * sizeof(char));
+    dados->sigla[2] = '\0';
     dados->tamanhoCidade = 0;
     dados->tamanhoModelo = 0;
     dados->tamanhoMarca = 0;
@@ -177,6 +178,7 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
     // Agora, de tamanho variável:
     int proximoValido = 1;
     int infosLidas = 0;
+    char *elemento = NULL;
 
     while (infosLidas < 3 && tamanhoRegistro + 5 < 97 && proximoValido == 1)
     {
@@ -193,8 +195,9 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
             continue;
         }
         infosLidas++;
-        char *elemento = (char *)malloc(tamanhoElemento * sizeof(char));
+        elemento = (char *)malloc(tamanhoElemento + 1 * sizeof(char));
         fread(elemento, sizeof(char), tamanhoElemento, fp);
+        elemento[tamanhoElemento] = '\0';
         tamanhoRegistro += tamanhoElemento;
 
         if (codigoElemento == '0')
@@ -228,7 +231,6 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
             }
         }
     }
-
     fseek(fp, (97 - tamanhoRegistro), SEEK_CUR);
     return;
 }
@@ -278,7 +280,8 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados, long long int aux)
             continue;
         }
         infosLidas++;
-        char *elemento = (char *)malloc(tamanhoElemento * sizeof(char));
+        char *elemento = (char *)malloc(tamanhoElemento + 1* sizeof(char));
+        elemento[tamanhoElemento] = '\0';
         fread(elemento, sizeof(char), tamanhoElemento, fp);
         tamanhoRegistro += tamanhoElemento;
         if (codigoElemento == '0')
