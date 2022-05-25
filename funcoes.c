@@ -138,7 +138,7 @@ void funcionalidade2(int tipoArq, char *nomeBinario)
 
     FILE *BIN = abre_bin_leitura(nomeBinario);
     cabecalho_t *cabecalho;
-    //dados_t *dados = inicializa_dados();
+    // dados_t *dados = inicializa_dados();
     cabecalho = inicia_cabecalho();
     int tamanhoTotal = 0;
     if (tipoArq == 1)
@@ -182,7 +182,7 @@ void funcionalidade2(int tipoArq, char *nomeBinario)
         while (aux < cabecalho->proxByteOffset)
         {
             dados_t *dados = inicializa_dados();
-            aux += ler_dados_tipo2(BIN, dados, aux);
+            aux += ler_dados_tipo2(BIN, dados);
             imprimeDados(dados, cabecalho);
             liberaDados(dados);
         }
@@ -197,8 +197,8 @@ void funcionalidade3(int tipoArquivo, char *nomeBinario, int n)
     FILE *BIN = abre_bin_leitura(nomeBinario);
     char **nomeCampos = NULL;
     char **valorCampos = NULL;
-    nomeCampos = (char **)malloc(n * sizeof(char*));
-    valorCampos = (char **)malloc(n * sizeof(char*));
+    nomeCampos = (char **)malloc(n * sizeof(char *));
+    valorCampos = (char **)malloc(n * sizeof(char *));
     for (int i = 0; i < n; i++)
     {
         nomeCampos[i] = (char *)malloc(15 * sizeof(char));
@@ -215,13 +215,14 @@ void funcionalidade3(int tipoArquivo, char *nomeBinario, int n)
         break;
 
     case 2:
+        busca_parametrizada_tipo2(BIN, nomeCampos, valorCampos, n);
         break;
 
     default:
         printf("Tipo de arquivo não existente\n");
         break;
     }
-    
+
     for (int i = 0; i < n; i++)
     {
         free(nomeCampos[i]);
@@ -265,7 +266,7 @@ void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos,
     // Vamos primeiro percorrer o primeiro cabeçalho. Só para chegarmos nos dados e pegarmos alguns valores
     cabecalho_t *cabecalho = inicia_cabecalho();
     ler_cab_arquivo(BIN, cabecalho, 1);
-     dados_t *dados = NULL;
+    dados_t *dados = NULL;
 
     int count = 0;
     int registroEncontrado = 0;
@@ -318,7 +319,7 @@ void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos,
                             condicoesAtendidas++;
                     }
                 }
-        //printf("cheguei \n");
+                // printf("cheguei \n");
                 if (j == 4)
                 {
                     if (strcmp(nomeCampos[i], "cidade") == 0)
@@ -367,14 +368,25 @@ void busca_parametrizada_tipo2(FILE *BIN, char **nomeCampos, char **valorCampos,
 {
     // Vamos primeiro percorrer o primeiro cabeçalho. Só para chegarmos nos dados e pegarmos alguns valores
     cabecalho_t *cabecalho = inicia_cabecalho();
-    ler_cab_arquivo(BIN, cabecalho, 1);
-
-    int count = 0;
+    ler_cab_arquivo(BIN, cabecalho, 2);
+    dados_t *dados = NULL;
     int registroEncontrado = 0;
-    while (count < cabecalho->proxRRN)
+
+    if (cabecalho->proxByteOffset <= 190)
     {
-        dados_t *dados = inicializa_dados();
-        ler_dados_tipo1(BIN, dados);
+        printf("Registro inexistente\n");
+        return;
+    }
+
+    // Dessa vez, nossa contagem começa a partir de depois do cabeçalho
+    int count = 190;
+    int tamamhoTotal = 0;
+    while (count < cabecalho->proxByteOffset)
+    {
+        dados = inicializa_dados();
+        tamamhoTotal = ler_dados_tipo2(BIN, dados);
+
+        count += tamamhoTotal;
 
         if (dados->removido == 1)
         {
@@ -420,7 +432,7 @@ void busca_parametrizada_tipo2(FILE *BIN, char **nomeCampos, char **valorCampos,
                             condicoesAtendidas++;
                     }
                 }
-        //printf("cheguei \n");
+                // printf("cheguei \n");
                 if (j == 4)
                 {
                     if (strcmp(nomeCampos[i], "cidade") == 0)
@@ -461,8 +473,6 @@ void busca_parametrizada_tipo2(FILE *BIN, char **nomeCampos, char **valorCampos,
         printf("Registro inexistente\n");
     }
 }
-
-
 
 void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
 {
@@ -673,7 +683,8 @@ void imprimeDados(dados_t *dados, cabecalho_t *cabecalho)
     return;
 }
 
-void liberaDados(dados_t *dados){
+void liberaDados(dados_t *dados)
+{
     free(dados->cidade);
     free(dados->marca);
     free(dados->modelo);

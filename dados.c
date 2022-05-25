@@ -235,7 +235,7 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
     return;
 }
 
-int ler_dados_tipo2(FILE *fp, dados_t *dados, long long int aux)
+int ler_dados_tipo2(FILE *fp, dados_t *dados)
 {
     int tamanhoRegistro = 0;
     int tamanhoTotal = 0;
