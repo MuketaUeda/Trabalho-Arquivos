@@ -1,3 +1,8 @@
+/*
+Trabalho 1 - Organização de Arquivos - SCC0215
+Gabriel Tavares Brayn Rosati - 11355831
+João Pedro Duarte Nunes - 12542460
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,6 +10,7 @@
 
 int main()
 {
+    //declaracaoo de variaveis
     int comando;
     char *tipoArq = (char *)malloc(sizeof(char) * 10);
     char *NomeCSV = (char *)malloc(sizeof(char) * 25);
@@ -16,6 +22,7 @@ int main()
     scanf("%d", &comando);
     scanf("%s", tipoArq);
 
+    //tranforsmando o tipo de arquivo para um variavel int
     int tipoArqInt = 0;
     if (strcmp(tipoArq, "tipo1") == 0)
         tipoArqInt = 1;
@@ -24,31 +31,32 @@ int main()
 
     switch (comando)
     {
+    //Funcao para copia do csv e escrita no binario, alem do printa binario
     case 1:
-        // pronta
         scanf("%s", NomeCSV);
         scanf("%s", NomeBinario);
         funcionalidade1(tipoArqInt, NomeCSV, NomeBinario);
         break;
 
-    case 2:;
+    //Funcao de print do arq binario
+    case 2:
         scanf("%s", NomeBinario);
-        // printf("%s\n", NomeBinario);
         funcionalidade2(tipoArqInt, NomeBinario);
         break;
 
+    //Funcao de busca
     case 3:
         scanf("%s", NomeBinario);
         scanf("%d", &n);
-        //printf("%d\n", n);
         funcionalidade3(tipoArqInt, NomeBinario, n);
         break;
 
+    //Funcao de "busca" por RRN
     case 4:
         scanf("%s", NomeBinario);
         scanf("%d", &RRN);
-        // printf("%s\n", NomeBinario);
-        if (tipoArqInt == 2)
+        
+        if (tipoArqInt == 2)//como aceita apenas arquivos do tipo 1, existe essa verificacao
         {
             printf("Falha no processamento do arquivo.\n");
             break;

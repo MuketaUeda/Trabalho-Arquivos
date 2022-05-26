@@ -25,8 +25,6 @@ struct regDados{
 };
 
 dados_t *inicializa_dados();
-void destruir_dados_tipo1(dados_t *dados);
 int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo);
 void ler_dados_tipo1(FILE *fp, dados_t *dados);
-//int ler_dados_tipo2(FILE* fp, dados_t *dados, long long int aux);
 int ler_dados_tipo2(FILE *fp, dados_t *dados);

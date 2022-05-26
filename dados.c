@@ -25,17 +25,6 @@ dados_t *inicializa_dados()
     return dados;
 }
 
-void destruir_dados_tipo1(dados_t *dados)
-{
-    free(dados->marca);
-    free(dados->modelo);
-    free(dados->cidade);
-    free(dados->sigla);
-
-    free(dados);
-    return;
-}
-
 // Escrita dos dados
 int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
 {
@@ -45,10 +34,8 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
     Aqui, como temos que escrever o tamanho do registro no arquivo antes de escrever outros elementos, vamos fazer a contagem antes:
     */
     dados->tamanhoAtual = 0;
-    if (tipoArquivo == 2)
-        dados->tamanhoAtual += 22;
-    if (tipoArquivo == 1)
-        dados->tamanhoAtual += 19;
+    if (tipoArquivo == 2) dados->tamanhoAtual += 22;
+    if (tipoArquivo == 1) dados->tamanhoAtual += 19;
 
     if (dados->cidade != NULL && strcmp(dados->cidade, "\0") != 0)
         dados->tamanhoCidade = strlen(dados->cidade);
@@ -96,10 +83,7 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
 
     fwrite(&dados->quantidade, sizeof(int), 1, fp);
 
-    if (strlen(dados->sigla) > 0)
-    {
-        fwrite(dados->sigla, sizeof(char), 2, fp);
-    }
+    if (strlen(dados->sigla) > 0) fwrite(dados->sigla, sizeof(char), 2, fp);
     else
     {
         dados->sigla[0] = '$';
@@ -131,7 +115,6 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
         char codModelo = '2';
         fwrite(&codModelo, sizeof(char), 1, fp);
         fwrite(dados->modelo, sizeof(char), dados->tamanhoModelo, fp);
-        // printf("tamanho modelo: %d\n", dados->tamanhoModelo);
         dados->tamanhoModelo = strlen(dados->modelo);
     }
 
@@ -180,7 +163,7 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
     int infosLidas = 0;
     char *elemento = NULL;
 
-    while (infosLidas < 3 && tamanhoRegistro + 5 < 97 && proximoValido == 1)
+    while (tamanhoRegistro + 5 < 97 && infosLidas < 3 && proximoValido == 1)
     {
         int tamanhoElemento = 0;
         char codigoElemento = '\0';
@@ -189,19 +172,15 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
         fread(&codigoElemento, sizeof(char), 1, fp);
         tamanhoRegistro += sizeof(char);
 
-        if (codigoElemento != '0' && codigoElemento != '1' && codigoElemento != '2')
-        {
-            proximoValido = 0;
-            continue;
-        }
         infosLidas++;
-        elemento = (char *)malloc(tamanhoElemento + 1 * sizeof(char));
+        elemento = (char *)malloc(tamanhoElemento + 1 * sizeof(char)); // alocando o elemento 'coringa' isso e pode ser cidade, marca ou modelo
         fread(elemento, sizeof(char), tamanhoElemento, fp);
         elemento[tamanhoElemento] = '\0';
         tamanhoRegistro += tamanhoElemento;
 
-        if (codigoElemento == '0')
+        if (codigoElemento == '0') // verifica o codigo lido
         {
+            // se o tamanho do elemento for maior que zero, significa que existe informacao para aquele codigo e assim e passado para o campo correto
             if (tamanhoElemento > 0)
             {
                 dados->tamanhoCidade = tamanhoElemento;
@@ -210,7 +189,7 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
                 dados->cidade[tamanhoElemento] = '\0';
             }
         }
-        if (codigoElemento == '1')
+        else if (codigoElemento == '1')
         {
             if (tamanhoElemento > 0)
             {
@@ -220,7 +199,7 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
                 dados->marca[tamanhoElemento] = '\0';
             }
         }
-        if (codigoElemento == '2')
+        else if (codigoElemento == '2')
         {
             if (tamanhoElemento > 0)
             {
@@ -230,8 +209,9 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
                 dados->modelo[tamanhoElemento] = '\0';
             }
         }
+        else proximoValido = 0;
     }
-    fseek(fp, (97 - tamanhoRegistro), SEEK_CUR);
+    fseek(fp, (97 - tamanhoRegistro), SEEK_CUR); // anda pelo arquivo para a posicao correta
     return;
 }
 
@@ -240,32 +220,29 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
     int tamanhoRegistro = 0;
     int tamanhoTotal = 0;
 
-    // Primeiramente, leremos os 19 bytes dos campos de tamanho fixo:
+    // Primeiramente, leremos os 27 bytes dos campos de tamanho fixo:
     fread(&dados->removido, sizeof(char), 1, fp);
-    //tamanhoRegistro += sizeof(char);
+    tamanhoRegistro += sizeof(char);
     fread(&tamanhoTotal, sizeof(int), 1, fp);
-    //tamanhoRegistro += sizeof(int);
+    tamanhoRegistro += sizeof(int);
     fread(&dados->proxOffset, sizeof(long long int), 1, fp);
-    //tamanhoRegistro += sizeof(long long int);
+    tamanhoRegistro += sizeof(long long int);
 
     fread(&dados->id, sizeof(int), 1, fp);
-    //tamanhoRegistro += sizeof(int);
+    tamanhoRegistro += sizeof(int);
     fread(&dados->ano, sizeof(int), 1, fp);
-    //tamanhoRegistro += sizeof(int);
+    tamanhoRegistro += sizeof(int);
     fread(&dados->quantidade, sizeof(int), 1, fp);
-    //tamanhoRegistro += sizeof(int);
+    tamanhoRegistro += sizeof(int);
     fread(dados->sigla, sizeof(char), 2, fp);
-    //tamanhoRegistro += 2 * sizeof(char);
+    tamanhoRegistro += 2 * sizeof(char);
 
     tamanhoTotal += 5;
     // Agora, de tamanho variável:
     int proximoValido = 1;
     int infosLidas = 0;
-    tamanhoRegistro += 27;
 
-    //printf("tamanho registro: %d\n", tamanhoRegistro);
-    //printf("total: %d\n", tamanhoTotal);
-    while (infosLidas < 3 && tamanhoRegistro + 5 < tamanhoTotal && proximoValido == 1)
+    while (tamanhoRegistro + 5 < tamanhoTotal && infosLidas < 3 && proximoValido == 1)
     {
         int tamanhoElemento = 0;
         char codigoElemento = '\0';
@@ -274,18 +251,14 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
         fread(&codigoElemento, sizeof(char), 1, fp);
         tamanhoRegistro += sizeof(char);
 
-        if (codigoElemento != '0' && codigoElemento != '1' && codigoElemento != '2')
-        {
-            proximoValido = 0;
-            continue;
-        }
         infosLidas++;
-        char *elemento = (char *)malloc(tamanhoElemento + 1* sizeof(char));
+        char *elemento = (char *)malloc(tamanhoElemento + 1 * sizeof(char)); // alocando o elemento 'coringa' isso e pode ser cidade, marca ou modelo
         elemento[tamanhoElemento] = '\0';
         fread(elemento, sizeof(char), tamanhoElemento, fp);
         tamanhoRegistro += tamanhoElemento;
         if (codigoElemento == '0')
         {
+            // se o tamanho do elemento for maior que zero, significa que existe informacao para aquele codigo e assim e passado para o campo correto
             if (tamanhoElemento > 0)
             {
                 dados->tamanhoCidade = tamanhoElemento;
@@ -294,17 +267,17 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
                 dados->cidade[tamanhoElemento] = '\0';
             }
         }
-        if (codigoElemento == '1')
+        else if (codigoElemento == '1')
         {
             if (tamanhoElemento > 0)
             {
                 dados->tamanhoMarca = tamanhoElemento;
-                dados->marca = (char *)malloc(dados->tamanhoMarca + 1* sizeof(char));
+                dados->marca = (char *)malloc(dados->tamanhoMarca + 1 * sizeof(char));
                 dados->marca = elemento;
                 dados->marca[tamanhoElemento] = '\0';
             }
         }
-        if (codigoElemento == '2')
+        else if (codigoElemento == '2')
         {
             if (tamanhoElemento > 0)
             {
@@ -314,8 +287,9 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
                 dados->modelo[tamanhoElemento] = '\0';
             }
         }
+        else proximoValido = 0;
     }
 
-    fseek(fp, (tamanhoTotal - tamanhoRegistro), SEEK_CUR);
+    fseek(fp, (tamanhoTotal - tamanhoRegistro), SEEK_CUR); // anda pelo arquivo para a posicao correta
     return tamanhoTotal;
 }

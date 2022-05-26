@@ -7,7 +7,6 @@ typedef struct regCabTipo2 cabecalhoTipo2_t;
 
 struct regCabTipo1{
     //Repare que foi somado 1 ao tamanho de cada array, por conta de /0
-    //verificar se ha nescessidade de um bit a mais
     char status;
     long long int topo;
     char desc[41];

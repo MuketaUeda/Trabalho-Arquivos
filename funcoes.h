@@ -20,6 +20,4 @@ void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario);
 void funcionalidade2(int tipoArq, char* nomeBinario);
 void funcionalidade3(int tipoArquivo, char *nomeBinario, int n);
 void funcionalidade4(char *nomeBinario, int RRN);
-void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos, int n);
-void busca_parametrizada_tipo2(FILE *BIN, char **nomeCampos, char **valorCampos, int n);
-void scan_quote_string(char *str);
+void busca_parametrizada(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo);

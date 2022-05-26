@@ -1,6 +1,6 @@
 #include "cabecalhos.h"
 
-// Funcoes para os arquivos Tipo1------------------------------------------------------------------
+// Funcoes unificadas para os cabeçalhos do tipo 1 e do tipo 2----------------------------------------------------------
 cabecalho_t *inicia_cabecalho()
 {
     cabecalho_t *cabecalho = (cabecalho_t *)malloc(1 * sizeof(cabecalho_t));
@@ -24,14 +24,16 @@ cabecalho_t *inicia_cabecalho()
     return cabecalho;
 }
 
+//funcao de escrita de cabecalho no arq binario
 void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo)
 {
     fseek(fp, 0, SEEK_SET);
+
     //  Escrever no arquivo, *em ordem*, usando como base cada o numero de bytes de cada informacao
     fwrite(&cabecalho->status, sizeof(char), 1, fp);
     if (tipo == 1)
         fwrite(&cabecalho->topo, sizeof(int), 1, fp);
-    else if (tipo == 2)
+    if (tipo == 2)
         fwrite(&cabecalho->topo, sizeof(long long int), 1, fp);
 
     fwrite(cabecalho->desc, sizeof(char), 40, fp);
@@ -45,12 +47,11 @@ void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo)
     fwrite(cabecalho->desMarca, sizeof(char), 18, fp);
     fwrite(&cabecalho->codModelo, sizeof(char), 1, fp);
     fwrite(cabecalho->desModelo, sizeof(char), 19, fp);
+
     if (tipo == 1)
         fwrite(&cabecalho->proxRRN, sizeof(int), 1, fp);
     if (tipo == 2)
-    {
         fwrite(&cabecalho->proxByteOffset, sizeof(long long int), 1, fp);
-    }
 
     fwrite(&cabecalho->nroRegRemovidos, sizeof(int), 1, fp);
 
@@ -90,8 +91,9 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
     return;
 }
 
+//funcao responsavel por liberar memoria
 void destroi_cabecalho(cabecalho_t *cabecalho)
 {
-    if (cabecalho)
+    if (cabecalho != NULL)
         free(cabecalho);
 }

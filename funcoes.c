@@ -1,6 +1,7 @@
 #include "funcoes.h"
 #include <ctype.h>
 
+// Funcao de leitura de strings
 char *read_line(FILE *stream, int *isEof)
 {
     char *linha = NULL;
@@ -11,6 +12,7 @@ char *read_line(FILE *stream, int *isEof)
         linha = realloc(linha, ++tamanhoLinha * sizeof(char));
         linha[tamanhoLinha - 1] = fgetc(stream);
     } while (linha[tamanhoLinha - 1] != EOF && linha[tamanhoLinha - 1] != '\n');
+    
     if (linha[tamanhoLinha - 1] == EOF)
     {
         linha[tamanhoLinha - 1] = '\0';
@@ -26,7 +28,7 @@ char *read_line(FILE *stream, int *isEof)
     return linha;
 }
 
-// imprima para impressao do binario na tela
+// print para binario na tela
 void binarioNaTela(char *nomeArquivoBinario)
 { /* Você não precisa entender o código dessa função. */
 
@@ -59,7 +61,6 @@ void binarioNaTela(char *nomeArquivoBinario)
 }
 
 // funcao oferecida para leitura com aspas
-
 void scan_quote_string(char *str)
 {
     /*
@@ -103,6 +104,7 @@ void scan_quote_string(char *str)
     }
 }
 
+// funcao de copia e escrita
 void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario)
 {
     FILE *CSV = abre_CSV_leitura(nomeCSV);
@@ -110,46 +112,45 @@ void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario)
     copia_binario(CSV, BIN, nomeBinario, tipoArquivo);
 }
 
-// arrumar
-char *my_str_tok(char *str, char *delims)
+// funcao de separacao das strings do csv para strings menores
+char *my_str_tok(char *string, char *delimitador)
 {
     static char *src = NULL;
-    char *p, *ret = 0;
+    char *locVirgula, *aux;
 
-    if (str != NULL)
-        src = str;
+    if (string != NULL) src = string;
 
-    if (src == NULL || *src == '\0') // Fix 1
-        return NULL;
+    if (*src == '\0') return NULL;
 
-    ret = src; // Fix 2
-    if ((p = strpbrk(src, delims)) != NULL)
+    aux = src; 
+
+    //strpbrk: encontra o primeiro caracter da string 1 igual a qualquer caracter da string 2
+    if ((locVirgula = strpbrk(src, delimitador)) != NULL)//encontra o demilitador dentro da string
     {
-        *p = 0;
-        src = ++p;
+        *locVirgula = 0;
+        src = ++locVirgula;
     }
     else
         src += strlen(src);
-    return ret;
+    return aux;
 }
 
+// funcao de impressao do conteudo do arquivo binario
 void funcionalidade2(int tipoArq, char *nomeBinario)
 {
 
     FILE *BIN = abre_bin_leitura(nomeBinario);
     cabecalho_t *cabecalho;
-    // dados_t *dados = inicializa_dados();
     cabecalho = inicia_cabecalho();
-    int tamanhoTotal = 0;
     if (tipoArq == 1)
     {
 
         int aux = 0;
         ler_cab_arquivo(BIN, cabecalho, 1);
-        if (cabecalho->proxRRN != 0)
+        if (cabecalho->proxRRN != 0) // verificacao de existencia do registro
         {
 
-            while (aux < cabecalho->proxRRN)
+            while (aux < cabecalho->proxRRN) // loop responsavel por inicializar, ler, imprimir e liberar os dados
             {
                 dados_t *dados = inicializa_dados();
                 ler_dados_tipo1(BIN, dados);
@@ -172,14 +173,14 @@ void funcionalidade2(int tipoArq, char *nomeBinario)
         long long int aux = 190;
         ler_cab_arquivo(BIN, cabecalho, 2);
 
-        if (cabecalho->proxByteOffset <= aux)
+        if (cabecalho->proxByteOffset <= aux) // verificacao de existencia de registro
         {
             printf("Registro inexistente\n");
             fclose(BIN);
             return;
         }
 
-        while (aux < cabecalho->proxByteOffset)
+        while (aux < cabecalho->proxByteOffset) // loop responsavel por inicializar, ler, imprimir e liberar os dados
         {
             dados_t *dados = inicializa_dados();
             aux += ler_dados_tipo2(BIN, dados);
@@ -197,8 +198,11 @@ void funcionalidade3(int tipoArquivo, char *nomeBinario, int n)
     FILE *BIN = abre_bin_leitura(nomeBinario);
     char **nomeCampos = NULL;
     char **valorCampos = NULL;
+
+    // criacao de uma matriz para armazenar as strins lidas para a busca
     nomeCampos = (char **)malloc(n * sizeof(char *));
     valorCampos = (char **)malloc(n * sizeof(char *));
+
     for (int i = 0; i < n; i++)
     {
         nomeCampos[i] = (char *)malloc(15 * sizeof(char));
@@ -206,22 +210,9 @@ void funcionalidade3(int tipoArquivo, char *nomeBinario, int n)
         scanf("%s", nomeCampos[i]);
         scan_quote_string(valorCampos[i]);
     }
-    // Análise do tipo do arquivo, para fazermos as buscas parametrizadas
-    switch (tipoArquivo)
-    {
-    case 1:
-        // printf("nome: %s\n", nomeCampos[0]);
-        busca_parametrizada_tipo1(BIN, nomeCampos, valorCampos, n);
-        break;
 
-    case 2:
-        busca_parametrizada_tipo2(BIN, nomeCampos, valorCampos, n);
-        break;
-
-    default:
-        printf("Tipo de arquivo não existente\n");
-        break;
-    }
+    // Chamando a função da busca parametrizada. Nela, tratamos diferenças entre os tipos de arquivos
+    busca_parametrizada(BIN, nomeCampos, valorCampos, n, tipoArquivo);
 
     for (int i = 0; i < n; i++)
     {
@@ -237,6 +228,7 @@ void funcionalidade3(int tipoArquivo, char *nomeBinario, int n)
     return;
 }
 
+// funcao de recuperacao de dados a partir do RRN
 void funcionalidade4(char *nomeBinario, int RRN)
 {
 
@@ -247,13 +239,13 @@ void funcionalidade4(char *nomeBinario, int RRN)
     dados = inicializa_dados();
     ler_cab_arquivo(BIN, cabecalho, 1);
 
-    if (RRN >= cabecalho->proxRRN || RRN < 0)
+    if (RRN >= cabecalho->proxRRN || RRN < 0) // verifica a existencia do registro
     {
         printf("Registro inexistente.\n");
         fclose(BIN);
         exit(0);
     }
-    posArq(BIN, dados, RRN);
+    posArq(BIN, dados, RRN); // funcao responsavel por posicionar o ponteiro corretamente no arquivo
     imprimeDados(dados, cabecalho);
     liberaDados(dados);
     free(cabecalho);
@@ -261,19 +253,33 @@ void funcionalidade4(char *nomeBinario, int RRN)
     return;
 }
 
-void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos, int n)
+void busca_parametrizada(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo)
 {
     // Vamos primeiro percorrer o primeiro cabeçalho. Só para chegarmos nos dados e pegarmos alguns valores
     cabecalho_t *cabecalho = inicia_cabecalho();
-    ler_cab_arquivo(BIN, cabecalho, 1);
+    ler_cab_arquivo(BIN, cabecalho, tipoArquivo);
     dados_t *dados = NULL;
 
     int count = 0;
     int registroEncontrado = 0;
-    while (count < cabecalho->proxRRN)
+    long long int prox = 0;
+
+    // Verificação do tipo do arquivo
+    if (tipoArquivo == 1)
+        prox = cabecalho->proxRRN;
+    else if (tipoArquivo == 2)
+        prox = cabecalho->proxByteOffset;
+
+    int tamanhoTotal = 0;
+    while (count < prox)
     {
         dados = inicializa_dados();
-        ler_dados_tipo1(BIN, dados);
+        if (tipoArquivo == 1)
+            ler_dados_tipo1(BIN, dados);
+        else if (tipoArquivo == 2)
+            tamanhoTotal = ler_dados_tipo2(BIN, dados);
+
+        count += tamanhoTotal;
 
         if (dados->removido == 1)
         {
@@ -282,8 +288,10 @@ void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos,
         }
 
         int condicoesAtendidas = 0;
-        // dois fors: primeiro, para fazermos a contagem de quantos campos foram satisfeitos. Depois, para encontrarmos cada campo
-        for (int i = 0; i < n; i++)
+        int i = 0;
+
+        // dois loops: primeiro, para fazermos a contagem de quantos campos foram satisfeitos. Depois, para encontrarmos cada campo
+        while (i < n)
         {
             for (int j = 0; j < 7; j++)
             {
@@ -319,7 +327,6 @@ void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos,
                             condicoesAtendidas++;
                     }
                 }
-                // printf("cheguei \n");
                 if (j == 4)
                 {
                     if (strcmp(nomeCampos[i], "cidade") == 0)
@@ -347,6 +354,7 @@ void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos,
                     }
                 }
             }
+            i++;
         }
         if (condicoesAtendidas == n)
         {
@@ -364,116 +372,7 @@ void busca_parametrizada_tipo1(FILE *BIN, char **nomeCampos, char **valorCampos,
     return;
 }
 
-void busca_parametrizada_tipo2(FILE *BIN, char **nomeCampos, char **valorCampos, int n)
-{
-    // Vamos primeiro percorrer o primeiro cabeçalho. Só para chegarmos nos dados e pegarmos alguns valores
-    cabecalho_t *cabecalho = inicia_cabecalho();
-    ler_cab_arquivo(BIN, cabecalho, 2);
-    dados_t *dados = NULL;
-    int registroEncontrado = 0;
-
-    if (cabecalho->proxByteOffset <= 190)
-    {
-        printf("Registro inexistente\n");
-        return;
-    }
-
-    // Dessa vez, nossa contagem começa a partir de depois do cabeçalho
-    int count = 190;
-    int tamamhoTotal = 0;
-    while (count < cabecalho->proxByteOffset)
-    {
-        dados = inicializa_dados();
-        tamamhoTotal = ler_dados_tipo2(BIN, dados);
-
-        count += tamamhoTotal;
-
-        if (dados->removido == 1)
-        {
-            free(dados);
-            continue;
-        }
-
-        int condicoesAtendidas = 0;
-        // dois fors: primeiro, para fazermos a contagem de quantos campos foram satisfeitos. Depois, para encontrarmos cada campo
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < 7; j++)
-            {
-                if (j == 0)
-                {
-                    if (strcmp(nomeCampos[i], "id") == 0)
-                    {
-                        if (dados->id == atoi(valorCampos[i]))
-                            condicoesAtendidas++;
-                    }
-                }
-                if (j == 1)
-                {
-                    if (strcmp(nomeCampos[i], "ano") == 0)
-                    {
-                        if (dados->ano == atoi(valorCampos[i]))
-                            condicoesAtendidas++;
-                    }
-                }
-                if (j == 2)
-                {
-                    if (strcmp(nomeCampos[i], "qtt") == 0)
-                    {
-                        if (dados->quantidade == atoi(valorCampos[i]))
-                            condicoesAtendidas++;
-                    }
-                }
-                if (j == 3)
-                {
-                    if (strcmp(nomeCampos[i], "sigla") == 0)
-                    {
-                        if (strcmp(dados->sigla, valorCampos[i]) == 0)
-                            condicoesAtendidas++;
-                    }
-                }
-                // printf("cheguei \n");
-                if (j == 4)
-                {
-                    if (strcmp(nomeCampos[i], "cidade") == 0)
-                    {
-                        if (dados->cidade != NULL && strcmp(dados->cidade, valorCampos[i]) == 0)
-                        {
-                            condicoesAtendidas++;
-                        }
-                    }
-                }
-                if (j == 5)
-                {
-                    if (strcmp(nomeCampos[i], "marca") == 0)
-                    {
-                        if (dados->marca != NULL && strcmp(dados->marca, valorCampos[i]) == 0)
-                            condicoesAtendidas++;
-                    }
-                }
-                if (j == 6)
-                {
-                    if (strcmp(nomeCampos[i], "modelo") == 0)
-                    {
-                        if (dados->modelo != NULL && strcmp(dados->modelo, valorCampos[i]) == 0)
-                            condicoesAtendidas++;
-                    }
-                }
-            }
-        }
-        if (condicoesAtendidas == n)
-        {
-            imprimeDados(dados, cabecalho);
-            registroEncontrado = 1;
-        }
-        count++;
-    }
-    if (registroEncontrado == 0)
-    {
-        printf("Registro inexistente\n");
-    }
-}
-
+// funcao responsavel por copiar o csv e escrever no arquivo binario
 void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
 {
     cabecalho_t *cabecalho = inicia_cabecalho();
@@ -523,7 +422,6 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
             }
             if (contador == 4)
             {
-                // printf("qtt: %s\n", token);
                 if (strlen(token) > 0)
                     dados->quantidade = atoi(token);
             }
@@ -578,6 +476,7 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo)
     free(cabecalho);
 }
 
+// funcao de abertura do csv para leitura
 FILE *abre_CSV_leitura(char *nomeCSV)
 {
     FILE *fp = fopen(nomeCSV, "r");
@@ -590,6 +489,7 @@ FILE *abre_CSV_leitura(char *nomeCSV)
     return fp;
 }
 
+// funcao de abertura do binario para escrita
 FILE *abre_bin_escrita(char *nomeBin)
 {
     FILE *fp = fopen(nomeBin, "wb");
@@ -603,6 +503,7 @@ FILE *abre_bin_escrita(char *nomeBin)
     return fp;
 }
 
+// funcao de abertura do arquivo binerio para leitura
 FILE *abre_bin_leitura(char *nomeBin)
 {
     FILE *fb = fopen(nomeBin, "rb+");
@@ -615,10 +516,10 @@ FILE *abre_bin_leitura(char *nomeBin)
     return fb;
 }
 
+// funcao para reposicionar o ponteiro na posicao correta
 void posArq(FILE *BIN, dados_t *dados, int RRN)
 {
-
-    long long int aux;
+    int aux;
     aux = 182 + (RRN * 97);
 
     fseek(BIN, aux, SEEK_SET);
@@ -626,15 +527,18 @@ void posArq(FILE *BIN, dados_t *dados, int RRN)
     return;
 }
 
+
+// funcao de impressao dos registros
 void imprimeDados(dados_t *dados, cabecalho_t *cabecalho)
 {
 
-    if (dados->removido == '1')
+    if (dados->removido == '1') // verificacao de removacao
     {
         return;
     }
     else
     {
+        // verifica se o tamanho da string e maior q zero, caso seja printa o dado, caso nao insere 'NAO PREENCHIDO'
         if (dados->tamanhoMarca > 0)
         {
             printf("%s%s\n", cabecalho->desMarca, dados->marca);
@@ -683,6 +587,7 @@ void imprimeDados(dados_t *dados, cabecalho_t *cabecalho)
     return;
 }
 
+// funcao de liberacao de memoria para os dados
 void liberaDados(dados_t *dados)
 {
     free(dados->cidade);
