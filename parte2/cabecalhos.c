@@ -70,7 +70,6 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
 {
     fseek(fp, 0, SEEK_SET);
     fread(&cabecalho->status, sizeof(char), 1, fp);
-
     if (tipo == 1)
     {
         fread(&cabecalho->topo, sizeof(int), 1, fp);

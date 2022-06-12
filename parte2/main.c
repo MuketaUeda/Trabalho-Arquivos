@@ -64,12 +64,33 @@ int main()
         }
         funcionalidade4(NomeBinario, RRN);
         break;
+
     case 5:
         scanf("%s", NomeBinario);
         scanf("%s", NomeIndice);
         funcionalidade5(tipoArqInt, NomeBinario, NomeIndice);
+        break;
 
+    case 6:
+        scanf("%s", NomeBinario);
+        scanf("%s", NomeIndice);
+        scanf("%d", &n);
+        //funcionalidade6(tipoArqInt, NomeBinario, NomeIndice);
+        break;
 
+    case 7:
+        scanf("%s", NomeBinario);
+        scanf("%s", NomeIndice);
+        scanf("%d", &n);
+        //funcionalidade7(tipoArqInt, NomeBinario, NomeIndice);
+        break;
+
+    case 8:
+        scanf("%s", NomeBinario);
+        scanf("%s", NomeIndice);
+        scanf("%d", &n);
+        //funcionalidade8(tipoArqInt, NomeBinario, NomeIndice);
+        break;
 
     default:
         printf("ERRO: comando invalido\n");

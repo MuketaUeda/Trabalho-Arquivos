@@ -8,6 +8,7 @@ João Pedro Duarte Nunes - 12542460
 #include<string.h>
 #include "dados.h"
 #include "cabecalhos.h"
+#include "indices.h"
 
 void readline(char* string);
 void liberaDados(dados_t * dados);
@@ -25,5 +26,11 @@ void funcionalidade1(int tipoArquivo, char *nomeCSV, char *nomeBinario);
 void funcionalidade2(int tipoArq, char* nomeBinario);
 void funcionalidade3(int tipoArquivo, char *nomeBinario, int n);
 void funcionalidade4(char *nomeBinario, int RRN);
+
 void funcionalidade5(int tipoArquivo, char *nomeBinario, char *nomeIndice);
+regIndice_t *insertionSort(regIndice_t *indices, int tamanho);
+void printArray(regIndice_t *indices, int tamanho);
+
+
+
 void busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo);

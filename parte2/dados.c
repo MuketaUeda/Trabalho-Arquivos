@@ -252,13 +252,16 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
     // Primeiramente, leremos os 27 bytes dos campos de tamanho fixo:
     fread(&dados->removido, sizeof(char), 1, fp);
     tamanhoRegistro += sizeof(char);
+
     fread(&tamanhoTotal, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
+    //printf("Tamanho total: %d\n", tamanhoTotal);
     fread(&dados->proxOffset, sizeof(long long int), 1, fp);
     tamanhoRegistro += sizeof(long long int);
 
     fread(&dados->id, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
+
     fread(&dados->ano, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
     fread(&dados->quantidade, sizeof(int), 1, fp);

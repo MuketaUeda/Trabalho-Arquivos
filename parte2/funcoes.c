@@ -4,7 +4,6 @@ Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
 #include "funcoes.h"
-#include "indices.h"
 #include <ctype.h>
 
 // Funcao de leitura de strings
@@ -151,6 +150,7 @@ void funcionalidade2(int tipoArq, char *nomeBinario)
     FILE *BIN = abre_bin_leitura(nomeBinario);
     cabecalho_t *cabecalho;
     cabecalho = inicia_cabecalho();
+
     if (tipoArq == 1)
     {
 
@@ -270,8 +270,8 @@ void funcionalidade5(int tipoArquivo, char *nomeBinario, char *nomeIndice)
 
     cabecalho_t *cabecalho = inicia_cabecalho();
     ler_cab_arquivo(BIN, cabecalho, tipoArquivo);
-
-    int count = 0;
+    fseek(arqIndice, 0, SEEK_SET);
+    fwrite(&cabecalho->status, sizeof(char), 1, arqIndice);
     long long int prox = 0;
 
     // Verificação do tipo do arquivo
@@ -280,19 +280,101 @@ void funcionalidade5(int tipoArquivo, char *nomeBinario, char *nomeIndice)
     else if (tipoArquivo == 2)
         prox = cabecalho->proxByteOffset;
 
-    int tamanhoTotal = 1;
-    // Aqui, vamos iterar sobre o arquivo binario e registrar cada informacao que precisamos
-    fseek(BIN, 0, SEEK_SET);
-    while (count < prox)
-    {
-        tamanhoTotal = ler_indices(indices, BIN, tipoArquivo);
-        if (tipoArquivo == 2)
-            count += tamanhoTotal;
+    // int tamanhoTotal = 1;
+    //  Aqui, vamos iterar sobre o arquivo binario e registrar cada informacao que precisamos
+    int count = 0;
 
-        count++;
+    if (tipoArquivo == 1)
+    {
+        count = 0;
+        while (count < prox)
+        {
+            ler_indices_tipo1(&indices[count], BIN);
+            indices[count].proxRRN = count;
+            count++;
+        }
+    }
+    if (tipoArquivo == 2)
+    {
+        long long int aux = 190;
+        //ler_cab_arquivo(BIN, cabecalho, 2);
+
+        if (cabecalho->proxByteOffset <= aux) // verificacao de existencia de registro
+        {
+            printf("Registro inexistente\n");
+            fclose(BIN);
+            return;
+        }
+
+        while (aux < cabecalho->proxByteOffset) // loop responsavel por inicializar, ler, imprimir e liberar os dados
+        {
+            dados_t *dados = inicializa_dados();
+            indices[count].offSet = aux;
+            aux += ler_dados_tipo2(BIN, dados);
+            indices[count].id = dados->id;
+
+            count++;
+        }
     }
 
+    // Ordenar os índices, caso não estejam ordenados
+    indices = insertionSort(indices, count);
+
+
+    int i = 0;
+    while (i < count)
+    {
+        //printf("vount: %d\n", count);
+        escreve_indice(&indices[i], arqIndice, tipoArquivo);
+        i++;
+    }
+
+    fclose(arqIndice);
+    fclose(BIN);
+
+    binarioNaTela(nomeIndice);
+    free(cabecalho);
+    destruir_indice(indices);
+
     return;
+}
+
+/* Function to sort an array using insertion sort*/
+regIndice_t *insertionSort(regIndice_t *indices, int tamanho)
+{
+    int i, keyId, keyProxRRN, keyProxOffset, j;
+    for (i = 1; i < tamanho; i++)
+    {
+        keyId = indices[i].id;
+        keyProxRRN = indices[i].proxRRN;
+        keyProxOffset = indices[i].offSet;
+        j = i - 1;
+
+        /* Move elements of indices[0..i-1], that are
+          greater than key, to one position ahead
+          of their current position */
+        while (j >= 0 && indices[j].id > keyId)
+        {
+            indices[j + 1] = indices[j];
+            j = j - 1;
+        }
+        indices[j + 1].id = keyId;
+        indices[j + 1].proxRRN = keyProxRRN;
+        indices[j + 1].offSet = keyProxOffset;
+    }
+    return indices;
+}
+
+// A utility function to print an array of size tamanho
+void printArray(regIndice_t *indices, int tamanho)
+{
+    int i;
+    for (i = 0; i < tamanho; i++)
+    {
+        printf("id: %d \n", indices[i].id);
+        // printf("prox: %d \n", indices[i].proxRRN);
+    }
+    printf("\n");
 }
 
 //
