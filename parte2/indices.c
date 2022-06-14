@@ -8,15 +8,14 @@ regIndice_t *inicia_indice()
     dadosIndice->id = -1;
     dadosIndice->proxRRN = 0;
     dadosIndice->offSet = 0;
-    dadosIndice->tamanho = 0;
 
     return dadosIndice;
 }
 
-void ler_indices_tipo1(regIndice_t *indice, FILE *fp)
+char ler_indices_tipo1(regIndice_t *indice, FILE *fp)
 {
     int tamanho = 0;
-    char removido; // Leremos so para nao termos que dar fseek de 1 byte
+    char removido; // Leremos para verificar se o registro foi removido ou nao. Retornamos para fazermos essa verificacao
     int proxRRN;
     fread(&removido, sizeof(char), 1, fp);
     tamanho += sizeof(char);
@@ -30,30 +29,10 @@ void ler_indices_tipo1(regIndice_t *indice, FILE *fp)
     tamanho += sizeof(int);
 
     fseek(fp, (97 - tamanho), SEEK_CUR);
+    return removido;
 }
-int ler_indices_tipo2(regIndice_t *indice, FILE *fp)
-{
-    int tamanhoTotal = 0;
-    int tamanhoRegistro = 0;
-    char removido; // Leremos so para nao termos que dar fseek de 1 byte
-    long long int proxByteOffset;
 
-    fread(&removido, sizeof(char), 1, fp);
-    tamanhoRegistro += sizeof(char);
 
-    fread(&tamanhoTotal, sizeof(int), 1, fp);
-    tamanhoRegistro += sizeof(int);
-    printf("tamanho total: %d\n", tamanhoTotal);
-    fread(&proxByteOffset, sizeof(long long int), 1, fp);
-    tamanhoRegistro += sizeof(long long int);
-
-    fread(&indice->id, sizeof(int), 1, fp);
-    tamanhoRegistro += sizeof(int);
-    
-
-    fseek(fp, (tamanhoTotal - tamanhoRegistro), SEEK_CUR);
-    return tamanhoTotal;
-}
 
 void escreve_indice(regIndice_t *indice, FILE *fp, int tipo)
 {
@@ -80,6 +59,26 @@ void destruir_indice(regIndice_t *indice)
     if (indice)
     {
         free(indice);
+    }
+    return;
+}
+
+void LeIndices(regIndice_t *indice, FILE *fp, int tipo){
+    int tam = 0;
+    if(tipo == 1){
+            fread(&indice->id,sizeof(int), 1, fp);
+            tam += sizeof(int);
+            fread(&indice->proxRRN, sizeof(int), 1, fp);
+            tam += sizeof(int);
+            //fseek(fp, 0, SEEK_CUR);
+    }
+
+    if(tipo == 2){
+        fread(&indice->id, sizeof(int), 1, fp);
+        tam += sizeof(int);
+        fread(&indice->offSet, sizeof(long long int), 1, fp);
+        tam += sizeof(long long int);
+        //fseek(fp, 0, SEEK_CUR);
     }
     return;
 }

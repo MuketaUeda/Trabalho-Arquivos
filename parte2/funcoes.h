@@ -31,6 +31,8 @@ void funcionalidade5(int tipoArquivo, char *nomeBinario, char *nomeIndice);
 regIndice_t *insertionSort(regIndice_t *indices, int tamanho);
 void printArray(regIndice_t *indices, int tamanho);
 
+void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int n);
+
 
 
 void busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo);
