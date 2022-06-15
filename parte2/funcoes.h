@@ -33,6 +33,11 @@ void printArray(regIndice_t *indices, int tamanho);
 
 void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int n);
 
+void funcionalidade7(int tipoArquivo, char* nomeDados, char* nomeIndice, int n);
+
+void funcionalidade8(int tipoArquivo, char* nomeDados, char* nomeIndice, int n);
+
+void Leitura(dados_t *dados);
 
 
 void busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo);

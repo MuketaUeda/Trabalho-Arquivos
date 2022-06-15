@@ -394,6 +394,115 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
     return;
 }
 
+void funcionalidade7(int tipoArquivo, char* nomeDados, char* nomeIndice, int n){
+
+    FILE *fp = abre_bin_leitura(nomeDados);
+    FILE *indice = abre_bin_leitura(nomeIndice);
+    dados_t *dados = inicializa_dados();
+    int count = 0;
+    int id, ano, qtt;
+    while(count < n){  
+        scanf("%d %d %d", &id, &ano, &qtt);
+        Leitura(dados);
+
+        //nao mexi nessa func ainda pq to com duvida sobre a fita das pilhas e listas e como verificar os espacos e afins
+        //inserirDados(dados, indice, fp, tipoArquivo);
+
+        count++;
+    }    
+    //binarioNaTela(nomeDados);
+    //binarioNaTela(nomeIndice);
+    return;
+}
+
+void Leitura(dados_t *dados){
+    char* aux;
+    for(int i = 1; i < 5; i++){
+        if(i == 1){
+            aux = malloc(sizeof(char)*50);
+            scan_quote_string(aux);
+            dados->sigla = malloc(sizeof(char)*strlen(aux)+1);
+            dados->sigla = aux;
+        }
+        if(i == 2){
+            aux = malloc(sizeof(char)*50);
+            scan_quote_string(aux);
+            dados->cidade = malloc(sizeof(char)*strlen(aux)+1);
+            dados->cidade = aux;
+        }
+        if(i == 3){
+            aux = malloc(sizeof(char)*50);
+            scan_quote_string(aux);
+            dados->marca = malloc(sizeof(char)*strlen(aux)+1);
+            dados->marca = aux;
+
+        }
+        if(i == 4){
+            aux = malloc(sizeof(char)*50);
+            scan_quote_string(aux);
+            dados->modelo = malloc(sizeof(char)*strlen(aux)+1);
+            dados->modelo = aux;
+        }
+            
+    }
+    free(aux);
+}
+
+//apenas copiei o conteudo da 6, porem tenho que fazer ajustes na leitura
+void funcionalidade8(int tipoArquivo, char* nomeDados, char* nomeIndice, int n){
+
+    regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
+    FILE *dados = abre_bin_leitura(nomeDados);
+    FILE *indice = abre_bin_leitura(nomeIndice);
+    int counter = 0;
+
+    while (counter < n)
+    {
+        char **nomeCampos = NULL;
+        char **valorCampos = NULL;
+        int numCampos;
+        int idVerify = 0;
+        scanf("%d", &numCampos);
+
+        // criacao de uma matriz para armazenar as strings lidas para a busca
+        nomeCampos = (char **)malloc(numCampos * sizeof(char *));
+        valorCampos = (char **)malloc(numCampos * sizeof(char *));
+
+        for (int i = 0; i < numCampos; i++)
+        {
+            // Alocando valores suficientes e depois armazenando o input
+            nomeCampos[i] = (char *)malloc(15 * sizeof(char));
+            valorCampos[i] = (char *)malloc(30 * sizeof(char));
+            scanf("%s", nomeCampos[i]);
+            if (strcmp(nomeCampos[i], "id") == 0)
+                idVerify = i;
+
+            scan_quote_string(valorCampos[i]);
+        }
+
+        if (idVerify != 0)
+        {
+            int tamanhoIndice = sizeof(indices) / sizeof(indices[0]);
+            busca_binaria_id(indices, 0, tamanhoIndice - 1, valorCampos[idVerify]);
+        }
+        else if (idVerify == 0)
+        {
+            busca(dados, nomeCampos, valorCampos, numCampos, tipoArquivo);
+        }
+
+        for (int i = 0; i < numCampos; i++)
+        {
+            free(nomeCampos[i]);
+            free(valorCampos[i]);
+        }
+
+        free(nomeCampos);
+        free(valorCampos);
+        counter++;
+    }
+    return;
+}
+
 int busca_binaria_id(regIndice_t *indices, int posicaoInicial, int posicaoFinal, int chave)
 {
     while (posicaoInicial <= posicaoFinal)
