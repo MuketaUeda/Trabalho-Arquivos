@@ -394,24 +394,79 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
     return;
 }
 
+
+//funcao em construçao
 void funcionalidade7(int tipoArquivo, char* nomeDados, char* nomeIndice, int n){
 
     FILE *fp = abre_bin_leitura(nomeDados);
     FILE *indice = abre_bin_leitura(nomeIndice);
+    cabecalho_t *cabecalho = inicia_cabecalho();
     dados_t *dados = inicializa_dados();
     int count = 0;
     int id, ano, qtt;
-    while(count < n){  
-        scanf("%d %d %d", &id, &ano, &qtt);
-        Leitura(dados);
+/*
+    if(tipoArquivo == 1){
 
-        //nao mexi nessa func ainda pq to com duvida sobre a fita das pilhas e listas e como verificar os espacos e afins
-        //inserirDados(dados, indice, fp, tipoArquivo);
+        //cria pilha removidos tipo1
+        ler_cab_arquivo(fp, cabecalho, 1);
+        //pilha_t pilha = cria();
+        int aux;
+        for(int i = 0; i < cabecalho->proxRRN; i++){
+            //aux = ler_dados_tipo1(nomeDados, dados);
+            if(aux != -1){
+                //insere(aux);
+            }
+        }
 
-        count++;
-    }    
-    //binarioNaTela(nomeDados);
-    //binarioNaTela(nomeIndice);
+        while(count < n){  
+            scanf("%d %d %d", &id, &ano, &qtt);
+            Leitura(dados);
+
+            if(pilhaIsEmpty){
+                fseek(fp, 0, SEEK_END);
+                escreve_dados(dados, fp, 1);
+            }
+            else{
+                pop(&rrn);
+                posArqEscrita(fp, dados, rrn);
+            }
+            count++;
+        }
+        funcionalidade5(tipoArquivo, nomeDados, nomeIndice);  
+    }
+
+    if(tipoArquivo == 2){
+        long long int aux = 190;
+        ler_cab_arquivo(fp, cabecalho, 2);
+        //lista_t lista = cria();
+        while(aux < cabecalho->proxByteOffset){
+            aux = ler_dados_tipo2(fp, dados);
+            if(aux != -1){
+                //insere(aux);
+            }
+        }
+
+        while(count < n){
+            scanf("%d %d %d", &id, &ano, &qtt);
+            Leitura(dados);
+
+            if(islistaVazia){
+                fseek(fp, 0, SEEK_END);
+                escreve_dados(dados, fp, 2);
+            }
+            else if(tamanhoreg > tamanhodisponivel){
+                fseek(fp, 0, SEEK_END);
+                escreve_dados(dados, fp, 2);
+            }
+            else{
+                //bolar ideia de inserção no local correto
+            }
+        }
+
+    }
+*/
+    binarioNaTela(nomeDados);
+    binarioNaTela(nomeIndice);
     return;
 }
 
@@ -835,6 +890,16 @@ void posArq(FILE *BIN, dados_t *dados, int RRN)
 
     fseek(BIN, aux, SEEK_SET);
     ler_dados_tipo1(BIN, dados);
+    return;
+}
+
+void posArqEscrita(FILE *BIN, dados_t *dados, int RRN)
+{
+    int aux;
+    aux = 182 + (RRN * 97);
+
+    fseek(BIN, aux, SEEK_SET);
+    escreve_dados(BIN, dados, 1);
     return;
 }
 
