@@ -1,8 +1,11 @@
 all:
 	gcc -o programaTrab *.c
 
-run:
-	./programaTrab
+run: all
+	./programaTrab < 9.in
+
+cpy:
+	cp arquivos/antes/* ./
 
 val: all
 	valgrind --leak-check=full ./entrega2
@@ -16,5 +19,5 @@ git:
 	git push
 	git status
 
-clean : 
-	rm *.o entrega2
+clear : 
+	clear

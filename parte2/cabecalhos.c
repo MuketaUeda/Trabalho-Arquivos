@@ -29,8 +29,8 @@ cabecalho_t *inicia_cabecalho()
     return cabecalho;
 }
 
-//funcao de escrita de cabecalho no arq binario
-//Unificada para os tipo 1 e tipo 2, pois as diferenças entre ambos são bem pequenas
+// funcao de escrita de cabecalho no arq binario
+// Unificada para os tipo 1 e tipo 2, pois as diferenças entre ambos são bem pequenas
 void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo)
 {
     fseek(fp, 0, SEEK_SET);
@@ -68,11 +68,13 @@ void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo)
 // Ler informações referentes ao cabeçalho de um arquivo
 void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
 {
+    printf("oioio\n");
     fseek(fp, 0, SEEK_SET);
     fread(&cabecalho->status, sizeof(char), 1, fp);
     if (tipo == 1)
     {
         fread(&cabecalho->topo, sizeof(int), 1, fp);
+        // printf("topo cab: %lld\n", cabecalho->topo);
 
         // Pula 169 bytes, referentes aos códigos e descrições
         fseek(fp, 169, SEEK_CUR);
@@ -81,6 +83,7 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
     else if (tipo == 2)
     {
         fread(&cabecalho->topo, sizeof(long long int), 1, fp);
+        printf("topo cab: %lld\n", cabecalho->topo);
 
         // Pula 169 bytes, referentes aos códigos e descrições
         fseek(fp, 169, SEEK_CUR);
@@ -89,10 +92,11 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
 
     fread(&cabecalho->nroRegRemovidos, sizeof(int), 1, fp);
 
-    if(cabecalho->status == '0'){
-		printf("Falha no processamento do arquivo.\n");
-		exit(0);
-	}
+    if (cabecalho->status == '0')
+    {
+        printf("Falha no processamento do arquivo.\n");
+        exit(0);
+    }
 
     return;
 }

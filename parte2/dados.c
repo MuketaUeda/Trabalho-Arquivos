@@ -158,6 +158,7 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
     tamanhoRegistro += sizeof(char);
     fread(&dados->proxRRN, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
+    //printf("rrn: %d\n", dados->proxRRN);
     fread(&dados->id, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
     fread(&dados->ano, sizeof(int), 1, fp);
@@ -258,7 +259,7 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
     //printf("Tamanho total: %d\n", tamanhoTotal);
     fread(&dados->proxOffset, sizeof(long long int), 1, fp);
     tamanhoRegistro += sizeof(long long int);
-
+    //printf("offset: %lld\n\n", dados->proxOffset);
     fread(&dados->id, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
 

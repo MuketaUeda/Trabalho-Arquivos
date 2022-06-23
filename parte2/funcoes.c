@@ -1,5 +1,5 @@
 /*
-Trabalho 1 - Organização de Arquivos - SCC0215
+Trabalho 2 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
@@ -222,7 +222,7 @@ void funcionalidade3(int tipoArquivo, char *nomeBinario, int n)
     }
 
     // Chamando a função da busca. Nela, tratamos diferenças entre os tipos de arquivos
-    busca(BIN, nomeCampos, valorCampos, n, tipoArquivo);
+    busca(BIN, nomeCampos, valorCampos, n, tipoArquivo, 0);
 
     for (int i = 0; i < n; i++)
     {
@@ -253,7 +253,7 @@ void funcionalidade4(char *nomeBinario, int RRN)
         fclose(BIN);
         exit(0);
     }
-    posArq(BIN, dados, RRN); // funcao responsavel por posicionar o ponteiro corretamente no arquivo
+    posicao_arquivo_leitura(BIN, dados, RRN); // funcao responsavel por posicionar o ponteiro corretamente no arquivo
     imprimeDados(dados, cabecalho);
     liberaDados(dados);
     free(cabecalho);
@@ -286,7 +286,7 @@ void funcionalidade5(int tipoArquivo, char *nomeBinario, char *nomeIndice)
         while (rrn < cabecalho->proxRRN)
         {
             indices[count].proxRRN = rrn;
-            char removido = ler_indices_tipo1(&indices[count], BIN);
+            char removido = ler_indices_dados_tipo1(&indices[count], BIN);
             if (removido == '0')
                 count++;
             indices = (regIndice_t *)realloc(indices, (count + 1) * sizeof(regIndice_t));
@@ -324,9 +324,9 @@ void funcionalidade5(int tipoArquivo, char *nomeBinario, char *nomeIndice)
     // printArray(indices, count);
 
     int i = 0;
+
     while (i < count)
     {
-        // printf("vount: %d\n", count);
         escreve_indice(&indices[i], arqIndice, tipoArquivo);
         i++;
     }
@@ -344,20 +344,54 @@ void funcionalidade5(int tipoArquivo, char *nomeBinario, char *nomeIndice)
 void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int numRemocoes)
 {
     regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
-    FILE *dados = abre_bin_leitura(nomeDados);
-    FILE *indice = abre_bin_leitura(nomeIndice);
-    int counter = 0;
-    while (counter < numRemocoes)
-    {
-        char **nomeCampos = NULL;
-        char **valorCampos = NULL;
-        int numCampos;
-        int idVerify = 0;
-        scanf("%d", &numCampos);
+    FILE *arqIndice = abre_bin_leitura(nomeIndice);
+    pilha_t *pilhaIndices = cria_pilha();
+    cabecalho_t *cabecalho = inicia_cabecalho();
+    dados_t *dados = inicializa_dados();
+    FILE *arqDados = abre_bin_leitura(nomeDados);
 
-        // criacao de uma matriz para armazenar as strings lidas para a busca
-        nomeCampos = (char **)malloc(numCampos * sizeof(char *));
-        valorCampos = (char **)malloc(numCampos * sizeof(char *));
+    ler_cab_arquivo(arqDados, cabecalho, tipoArquivo);
+    long long int prox = 0;
+    if (tipoArquivo == 1)
+        prox = cabecalho->proxRRN;
+    if (tipoArquivo == 2)
+        prox = cabecalho->proxByteOffset;
+
+    int size = 0;
+    char status;
+
+    fseek(arqIndice, 0, SEEK_END);
+    int tamanho = ftell(arqIndice);
+    fseek(arqIndice, 0, SEEK_SET);
+    fread(&status, sizeof(char), 1, arqIndice);
+
+    long long int counter = 1;
+    int k = 0;
+    while (counter < tamanho)
+    {
+        indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
+        counter += ler_arquivo_indices(&indices[k], arqIndice, tipoArquivo);
+        // printf("id: %d rrn: %lld\n", indices[k].id, indices[k].offSet);
+        indices[k].id = indices[k].id;
+        k++;
+    }
+
+    indices = insertionSort(indices, size);
+    int counter2 = 0;
+    int posicaoID = 0;
+
+    char **nomeCampos = (char **)malloc(sizeof(char *));
+    char **valorCampos = (char **)malloc(sizeof(char *));
+    int ids[numRemocoes];
+    while (counter2 < numRemocoes)
+    {
+        int numCampos;
+        int idVerify = -1;
+        scanf("%d", &numCampos);
+        // printf("num: %d\n", counter2);
+        //  criacao de uma matriz para armazenar as strings lidas para a busca
+        nomeCampos = (char **)realloc(nomeCampos, numCampos * sizeof(char *));
+        valorCampos = (char **)realloc(valorCampos, numCampos * sizeof(char *));
 
         for (int i = 0; i < numCampos; i++)
         {
@@ -365,163 +399,242 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
             nomeCampos[i] = (char *)malloc(15 * sizeof(char));
             valorCampos[i] = (char *)malloc(30 * sizeof(char));
             scanf("%s", nomeCampos[i]);
-            if (strcmp(nomeCampos[i], "id") == 0)
-                idVerify = i;
-
+            // scanf("%s", valorCampos[i]);
             scan_quote_string(valorCampos[i]);
+            // printf("%s %d\n", nomeCampos[i], atoi(valorCampos[i]));
+
+            if (strcmp(nomeCampos[i], "id") == 0)
+            {
+                idVerify = i;
+            }
         }
 
-        if (idVerify != 0)
+        // 1)Procurar o ID a ser removido
+        // 2)Remover elemento do array
+        // 3)Adicionar seu RRN na pilha de removidos
+        // 4)Buscá-lo no arquivo de dados
+        // 5)Atualizar "removido" para '1' e escrever de volta no arquivo
+        // 6)Reescrever o array de struct no arquivo de índices
+        // arqDados = abre_bin_escrita(nomeDados);
+        if (idVerify != -1 && numCampos == 1)
         {
-            int tamanhoIndice = sizeof(indices) / sizeof(indices[0]);
-            busca_binaria_id(indices, 0, tamanhoIndice - 1, valorCampos[idVerify]);
-        }
-        else if (idVerify == 0)
-        {
-            busca(dados, nomeCampos, valorCampos, numCampos, tipoArquivo);
-        }
 
-        for (int i = 0; i < numCampos; i++)
-        {
-            free(nomeCampos[i]);
-            free(valorCampos[i]);
-        }
+            int idBusca = 0;
+            idBusca = atoi(valorCampos[idVerify]);
+            // printf("entrei, id: %d\n", idBusca);
+            posicaoID = busca_binaria_id(indices, 0, (size - 1), idBusca);
 
-        free(nomeCampos);
-        free(valorCampos);
-        counter++;
+            ids[counter2] = indices[posicaoID].id;
+            if (posicaoID != -1)
+            {
+                long long int pos = -1;
+                push(pilhaIndices, indices[posicaoID].proxRRN);
+                if (tipoArquivo == 1)
+                {
+                    pos = indices[posicaoID].proxRRN;
+                    pos = 182 + (pos * 97);
+                }
+                if (tipoArquivo == 2)
+                    pos = indices[posicaoID].offSet;
+                // printf("pos: %d offset: %lld\n\n\n", posicaoID, indices[posicaoID].offSet);
+                size = remover_elemento_array(indices, posicaoID, size, tipoArquivo);
+                posicao_arquivo_escrita(arqDados, dados, pos, tipoArquivo);
+            }
+        }
+        else
+        {
+            int *indicesRemovidos = malloc(1 * sizeof(int));
+            int numIndicesRemovidos = 0;
+            indicesRemovidos = busca(arqDados, nomeCampos, valorCampos, numCampos, tipoArquivo, 1);
+            // printf("oioioi %d %d\n", idVerify, numCampos);
+            numIndicesRemovidos = sizeof(indicesRemovidos) / 4;
+
+            for (int i = 0; i < (numIndicesRemovidos + 1); i++)
+            {
+                posicaoID = busca_binaria_id(indices, 0, (size - 1), indicesRemovidos[i]);
+                // printf("indice Pos: %d indice certo: %d\n", indices[posicaoID].id, indicesRemovidos[i]);
+                if (indicesRemovidos[i] != 0)
+                    size = remover_elemento_array(indices, posicaoID, size, tipoArquivo);
+            }
+
+            idVerify = -1;
+        }
+        counter2++;
     }
+
+    fclose(arqIndice);
+    arqIndice = abre_bin_escrita(nomeIndice);
+    fwrite(&cabecalho->status, sizeof(char), 1, arqIndice);
+    int i = 0;
+
+    while (i < size)
+    {
+        // printf("id: %d rrn: %d\n", indices[i].id, indices[i].proxRRN);
+        escreve_indice(&indices[i], arqIndice, tipoArquivo);
+        i++;
+    }
+
+    fclose(arqDados);
+    fclose(arqIndice);
+    binarioNaTela(nomeDados);
+    binarioNaTela(nomeIndice);
+
     return;
 }
 
-
-//funcao em construçao
-void funcionalidade7(int tipoArquivo, char* nomeDados, char* nomeIndice, int n){
+//de modo geral a ideia da func7 é essa, n fiz a inserção de novos Ids no arq de indice ainda pq quero ver com vc se é nesceassário ordenar antes igual na func6
+//caso seja eu so iria pegar a msm fita feita em cima e utilizar, alem disso preciso verificar se caso umm registro seja inserido no espaço de um antigo
+//eu preciso ou não modificar seu id, imagino que so ocorra para um registro novo (fim do arquivo)
+//fiz um loop de leitura com inserção, parei nesse posicao_arquivo pois não entendi exatemente a logica da variavel posicao muito bem e se ela se enquadra tb para essa
+//funcao, ai o prox passo seria modificar ela para ou retornar o prox RRN para inserir-mos corretamente ou ela msm fazer a inserção nas pos corretas
+void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n){
 
     FILE *fp = abre_bin_leitura(nomeDados);
-    FILE *indice = abre_bin_leitura(nomeIndice);
-    cabecalho_t *cabecalho = inicia_cabecalho();
+    FILE *index = abre_bin_leitura(nomeIndice);
     dados_t *dados = inicializa_dados();
-    int count = 0;
+    cabecalho_t *cabecalho = inicia_cabecalho();
     int id, ano, qtt;
-/*
+    int count = 0;
+    long long int topo = 0;
+    long long int aux = 0;
     if(tipoArquivo == 1){
-
-        //cria pilha removidos tipo1
         ler_cab_arquivo(fp, cabecalho, 1);
-        //pilha_t pilha = cria();
-        int aux;
-        for(int i = 0; i < cabecalho->proxRRN; i++){
-            //aux = ler_dados_tipo1(nomeDados, dados);
-            if(aux != -1){
-                //insere(aux);
-            }
-        }
-
-        while(count < n){  
-            scanf("%d %d %d", &id, &ano, &qtt);
-            Leitura(dados);
-
-            if(pilhaIsEmpty){
-                fseek(fp, 0, SEEK_END);
-                escreve_dados(dados, fp, 1);
-            }
-            else{
-                pop(&rrn);
-                posArqEscrita(fp, dados, rrn);
-            }
-            count++;
-        }
-        funcionalidade5(tipoArquivo, nomeDados, nomeIndice);  
     }
-
     if(tipoArquivo == 2){
-        long long int aux = 190;
         ler_cab_arquivo(fp, cabecalho, 2);
-        //lista_t lista = cria();
-        while(aux < cabecalho->proxByteOffset){
-            aux = ler_dados_tipo2(fp, dados);
-            if(aux != -1){
-                //insere(aux);
-            }
-        }
-
-        while(count < n){
-            scanf("%d %d %d", &id, &ano, &qtt);
-            Leitura(dados);
-
-            if(islistaVazia){
-                fseek(fp, 0, SEEK_END);
-                escreve_dados(dados, fp, 2);
-            }
-            else if(tamanhoreg > tamanhodisponivel){
-                fseek(fp, 0, SEEK_END);
-                escreve_dados(dados, fp, 2);
-            }
-            else{
-                //bolar ideia de inserção no local correto
-            }
-        }
-
     }
-*/
+
+    while (count < n)
+    {
+        scanf("%d %d %d", &id, &ano, &qtt);
+        dados->id = id;
+        dados->ano = ano;
+        dados->quantidade = qtt;
+        Leitura(dados);
+
+        if(cabecalho->topo == -1){
+            fseek(fp, 0, SEEK_END);
+            escreve_dados(dados, fp, tipoArquivo);
+        }else{
+            topo = posicao_arquivo_escritaInserção(fp, dados, pos, tipoArquivo);
+            aux = 182 + (97 * topo);
+            fseek(fp, 0, SEEK_SET);
+            escreve_dados(dados, fp, tipoArquivo);
+
+        }
+
+        count++;
+    }
+    cabecalho->status = '1';
+    escreve_cabecalho_arquivo(cabecalho, fp, 1);
+    fclose(fp);
+    fclose(index);
     binarioNaTela(nomeDados);
     binarioNaTela(nomeIndice);
     return;
 }
 
-void Leitura(dados_t *dados){
-    char* aux;
-    for(int i = 1; i < 5; i++){
-        if(i == 1){
-            aux = malloc(sizeof(char)*50);
+void Leitura(dados_t *dados)
+{
+    char *aux;
+    int aux2;
+    for (int i = 1; i < 5; i++)
+    {
+        if (i == 1)
+        {   
+            aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            dados->sigla = malloc(sizeof(char)*strlen(aux)+1);
+            dados->sigla = malloc(sizeof(char) * strlen(aux)+1);
             dados->sigla = aux;
+            aux2 = strlen(aux);
+            dados->sigla[aux2] = '\0';
         }
-        if(i == 2){
-            aux = malloc(sizeof(char)*50);
+        if (i == 2)
+        {
+            aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            dados->cidade = malloc(sizeof(char)*strlen(aux)+1);
+            dados->cidade = malloc(sizeof(char) * strlen(aux)+1);
             dados->cidade = aux;
+            aux2 = strlen(aux);
+            dados->cidade[aux2] = '\0';
         }
-        if(i == 3){
-            aux = malloc(sizeof(char)*50);
+        if (i == 3)
+        {
+            aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            dados->marca = malloc(sizeof(char)*strlen(aux)+1);
+            dados->marca = malloc(sizeof(char) * strlen(aux)+1);
             dados->marca = aux;
-
-        }
-        if(i == 4){
-            aux = malloc(sizeof(char)*50);
-            scan_quote_string(aux);
-            dados->modelo = malloc(sizeof(char)*strlen(aux)+1);
-            dados->modelo = aux;
-        }
+            aux2 = strlen(aux);
+            dados->marca[aux2] = '\0';
             
+        }
+        if (i == 4)
+        {
+            aux = malloc(sizeof(char) * 50);
+            scan_quote_string(aux);
+            dados->modelo = malloc(sizeof(char) * strlen(aux)+1);
+            dados->modelo = aux;
+            aux2 = strlen(aux);
+            dados->modelo[aux2] = '\0';
+        }
     }
     free(aux);
 }
 
-//apenas copiei o conteudo da 6, porem tenho que fazer ajustes na leitura
-void funcionalidade8(int tipoArquivo, char* nomeDados, char* nomeIndice, int n){
+/*
+// apenas copiei o conteudo da 6, porem tenho que fazer ajustes na leitura
+void funcionalidade8(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
+{
 
     regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
-    FILE *dados = abre_bin_leitura(nomeDados);
-    FILE *indice = abre_bin_leitura(nomeIndice);
-    int counter = 0;
+    FILE *arqIndice = abre_bin_leitura(nomeIndice);
+    pilha_t *pilhaIndices = cria_pilha();
+    cabecalho_t *cabecalho = inicia_cabecalho();
+    dados_t *dados = inicializa_dados();
+    FILE *arqDados = abre_bin_leitura(nomeDados);
 
-    while (counter < n)
+    ler_cab_arquivo(arqDados, cabecalho, tipoArquivo);
+    long long int prox = 0;
+    if (tipoArquivo == 1)
+        prox = cabecalho->proxRRN;
+    if (tipoArquivo == 2)
+        prox = cabecalho->proxByteOffset;
+
+    int size = 0;
+    char status;
+
+    fseek(arqIndice, 0, SEEK_END);
+    int tamanho = ftell(arqIndice);
+    fseek(arqIndice, 0, SEEK_SET);
+    fread(&status, sizeof(char), 1, arqIndice);
+
+    long long int counter = 1;
+    int k = 0;
+    while (counter < tamanho)
     {
-        char **nomeCampos = NULL;
-        char **valorCampos = NULL;
-        int numCampos;
-        int idVerify = 0;
-        scanf("%d", &numCampos);
+        indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
+        counter += ler_arquivo_indices(&indices[k], arqIndice, tipoArquivo);
+        // printf("id: %d rrn: %lld\n", indices[k].id, indices[k].offSet);
+        indices[k].id = indices[k].id;
+        k++;
+    }
 
-        // criacao de uma matriz para armazenar as strings lidas para a busca
-        nomeCampos = (char **)malloc(numCampos * sizeof(char *));
-        valorCampos = (char **)malloc(numCampos * sizeof(char *));
+    indices = insertionSort(indices, size);
+    int counter2 = 0;
+    int posicaoID = 0;
+
+    char **nomeCampos = (char **)malloc(sizeof(char *));
+    char **valorCampos = (char **)malloc(sizeof(char *));
+    int ids[numRemocoes];
+    while (counter2 < numRemocoes)
+    {
+        int numCampos;
+        int idVerify = -1;
+        scanf("%d", &numCampos);
+        // printf("num: %d\n", counter2);
+        //  criacao de uma matriz para armazenar as strings lidas para a busca
+        nomeCampos = (char **)realloc(nomeCampos, numCampos * sizeof(char *));
+        valorCampos = (char **)realloc(valorCampos, numCampos * sizeof(char *));
 
         for (int i = 0; i < numCampos; i++)
         {
@@ -529,34 +642,90 @@ void funcionalidade8(int tipoArquivo, char* nomeDados, char* nomeIndice, int n){
             nomeCampos[i] = (char *)malloc(15 * sizeof(char));
             valorCampos[i] = (char *)malloc(30 * sizeof(char));
             scanf("%s", nomeCampos[i]);
-            if (strcmp(nomeCampos[i], "id") == 0)
-                idVerify = i;
-
+            // scanf("%s", valorCampos[i]);
             scan_quote_string(valorCampos[i]);
+            // printf("%s %d\n", nomeCampos[i], atoi(valorCampos[i]));
+
+            if (strcmp(nomeCampos[i], "id") == 0)
+            {
+                idVerify = i;
+            }
         }
 
-        if (idVerify != 0)
+        // 1)Procurar o ID a ser removido
+        // 2)Remover elemento do array
+        // 3)Adicionar seu RRN na pilha de removidos
+        // 4)Buscá-lo no arquivo de dados
+        // 5)Atualizar "removido" para '1' e escrever de volta no arquivo
+        // 6)Reescrever o array de struct no arquivo de índices
+        // arqDados = abre_bin_escrita(nomeDados);
+        if (idVerify != -1 && numCampos == 1)
         {
-            int tamanhoIndice = sizeof(indices) / sizeof(indices[0]);
-            busca_binaria_id(indices, 0, tamanhoIndice - 1, valorCampos[idVerify]);
-        }
-        else if (idVerify == 0)
-        {
-            busca(dados, nomeCampos, valorCampos, numCampos, tipoArquivo);
-        }
 
-        for (int i = 0; i < numCampos; i++)
-        {
-            free(nomeCampos[i]);
-            free(valorCampos[i]);
-        }
+            int idBusca = 0;
+            idBusca = atoi(valorCampos[idVerify]);
+            // printf("entrei, id: %d\n", idBusca);
+            posicaoID = busca_binaria_id(indices, 0, (size - 1), idBusca);
 
-        free(nomeCampos);
-        free(valorCampos);
-        counter++;
+            ids[counter2] = indices[posicaoID].id;
+            if (posicaoID != -1)
+            {
+                long long int pos = -1;
+                push(pilhaIndices, indices[posicaoID].proxRRN);
+                if (tipoArquivo == 1)
+                {
+                    pos = indices[posicaoID].proxRRN;
+                    pos = 182 + (pos * 97);
+                }
+                if (tipoArquivo == 2)
+                    pos = indices[posicaoID].offSet;
+                // printf("pos: %d offset: %lld\n\n\n", posicaoID, indices[posicaoID].offSet);
+                size = remover_elemento_array(indices, posicaoID, size, tipoArquivo);
+                posicao_arquivo_escrita(arqDados, dados, pos, tipoArquivo);
+            }
+        }
+        else
+        {
+            int *indicesRemovidos = malloc(1 * sizeof(int));
+            int numIndicesRemovidos = 0;
+            indicesRemovidos = busca(arqDados, nomeCampos, valorCampos, numCampos, tipoArquivo, 1);
+            // printf("oioioi %d %d\n", idVerify, numCampos);
+            numIndicesRemovidos = sizeof(indicesRemovidos) / 4;
+
+            for (int i = 0; i < (numIndicesRemovidos + 1); i++)
+            {
+                posicaoID = busca_binaria_id(indices, 0, (size - 1), indicesRemovidos[i]);
+                // printf("indice Pos: %d indice certo: %d\n", indices[posicaoID].id, indicesRemovidos[i]);
+                if (indicesRemovidos[i] != 0)
+                    size = remover_elemento_array(indices, posicaoID, size, tipoArquivo);
+            }
+
+            idVerify = -1;
+        }
+        counter2++;
     }
+
+    fclose(arqIndice);
+    arqIndice = abre_bin_escrita(nomeIndice);
+    fwrite(&cabecalho->status, sizeof(char), 1, arqIndice);
+    int i = 0;
+
+    while (i < size)
+    {
+        // printf("id: %d rrn: %d\n", indices[i].id, indices[i].proxRRN);
+        escreve_indice(&indices[i], arqIndice, tipoArquivo);
+        i++;
+    }
+
+    fclose(arqDados);
+    fclose(arqIndice);
+    binarioNaTela(nomeDados);
+    binarioNaTela(nomeIndice);
+
     return;
+
 }
+*/
 
 int busca_binaria_id(regIndice_t *indices, int posicaoInicial, int posicaoFinal, int chave)
 {
@@ -564,17 +733,20 @@ int busca_binaria_id(regIndice_t *indices, int posicaoInicial, int posicaoFinal,
     { // log n
 
         int centro = (int)((posicaoInicial + posicaoFinal) / 2);
-        printf("valor inicial %i; valor final %i; valor central %i\n",
-               indices[posicaoInicial].id, indices[posicaoFinal].id, indices[centro].id);
-
+        // printf("valor inicial %i; valor final %i; valor central %i\n",
+        //      indices[posicaoInicial].id, indices[posicaoFinal].id, indices[centro].id);
         if (chave == indices[centro].id)
+        {
             return centro; // valor encontrado
+            printf("chave: %d valor %d\n", chave, indices[centro].id);
+        }
 
         if (chave < indices[centro].id) // se o n�mero existir estar� na primeira metade
             posicaoFinal = centro - 1;
         if (chave > indices[centro].id) // se o n�mero existir estar� na segunda metade
             posicaoInicial = centro + 1;
     }
+    // printf("\n\nchave: %d\n\nc", chave);
 
     return -1; // valor n�o encontrado
 }
@@ -618,14 +790,19 @@ void printArray(regIndice_t *indices, int tamanho)
 }
 
 //
-void busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo)
+int *busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo, int trabalho2)
 {
     // Vamos primeiro percorrer o primeiro cabeçalho. Só para chegarmos nos dados e pegarmos alguns valores
+    // fseek(BIN, 0, SEEK_SET);
     cabecalho_t *cabecalho = inicia_cabecalho();
     ler_cab_arquivo(BIN, cabecalho, tipoArquivo);
+
     dados_t *dados = NULL;
 
-    int count = 0;
+    int *indicesRemovidos = malloc(1 * sizeof(int));
+    int numRegRemovidos = 0;
+
+    long long int count = 0;
     int registroEncontrado = 0;
     long long int prox = 0;
 
@@ -634,19 +811,22 @@ void busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArqu
         prox = cabecalho->proxRRN;
     else if (tipoArquivo == 2)
         prox = cabecalho->proxByteOffset;
+    // printf("oi\n");
 
     int tamanhoTotal = 0;
-
+    long long int posicao = -1;
     while (count < prox)
     {
         dados = inicializa_dados();
+        posicao = ftell(BIN);
+        // printf("posicao: %lld\n", posicao);
         if (tipoArquivo == 1)
             ler_dados_tipo1(BIN, dados);
         else if (tipoArquivo == 2)
             tamanhoTotal = ler_dados_tipo2(BIN, dados);
 
         count += tamanhoTotal;
-
+        // printf("id %d\n", dados->id);
         if (dados->removido == 1)
         {
             liberaDados(dados);
@@ -674,7 +854,10 @@ void busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArqu
                     if (strcmp(nomeCampos[i], "ano") == 0)
                     {
                         if (dados->ano == atoi(valorCampos[i]))
+                        {
+                            // printf("id: %d inp: %d n %d\n", dados->id, dados->ano, n);
                             condicoesAtendidas++;
+                        }
                     }
                 }
                 if (j == 2)
@@ -699,6 +882,7 @@ void busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArqu
                     {
                         if (dados->cidade != NULL && strcmp(dados->cidade, valorCampos[i]) == 0)
                         {
+                            // printf("%s %s\n", dados->cidade, valorCampos[i]);
                             condicoesAtendidas++;
                         }
                     }
@@ -722,20 +906,39 @@ void busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArqu
             }
             i++;
         }
+        // printf("condicoes %d n %d\n", condicoesAtendidas, n);
         if (condicoesAtendidas == n)
         {
-            imprimeDados(dados, cabecalho);
+            if (trabalho2 == 0)
+                imprimeDados(dados, cabecalho);
             registroEncontrado = 1;
+        }
+        if (trabalho2 == 1 && registroEncontrado == 1)
+        {
+            indicesRemovidos = (int *)realloc(indicesRemovidos, (++numRegRemovidos) * sizeof(int));
+            long long int pos = 0;
+            dados->removido = '1';
+            if (tipoArquivo == 1)
+                pos = dados->proxRRN;
+            if (tipoArquivo == 2)
+                pos = dados->proxOffset;
+
+            // printf("oi\n");
+            // printf("count: %lld, prox: %lld\n", count, prox);
+            posicao_arquivo_escrita(BIN, dados, posicao, tipoArquivo);
+            indicesRemovidos[numRegRemovidos - 1] = dados->id;
+            // printf("entrei%lld\n", posicao);
+            registroEncontrado = 0;
         }
         count++;
         liberaDados(dados);
     }
-    if (registroEncontrado == 0)
+    if (registroEncontrado == 0 && trabalho2 == 0)
     {
         printf("Registro inexistente\n");
     }
     free(cabecalho);
-    return;
+    return indicesRemovidos;
 }
 
 // funcao responsavel por copiar o csv e escrever no arquivo binario
@@ -858,7 +1061,7 @@ FILE *abre_CSV_leitura(char *nomeCSV)
 // funcao de abertura do binario para escrita
 FILE *abre_bin_escrita(char *nomeBin)
 {
-    FILE *fp = fopen(nomeBin, "wb");
+    FILE *fp = fopen(nomeBin, "wb+");
 
     if (fp == NULL)
     {
@@ -883,7 +1086,7 @@ FILE *abre_bin_leitura(char *nomeBin)
 }
 
 // funcao para reposicionar o ponteiro na posicao correta
-void posArq(FILE *BIN, dados_t *dados, int RRN)
+void posicao_arquivo_leitura(FILE *BIN, dados_t *dados, int RRN)
 {
     int aux;
     aux = 182 + (RRN * 97);
@@ -893,15 +1096,322 @@ void posArq(FILE *BIN, dados_t *dados, int RRN)
     return;
 }
 
-void posArqEscrita(FILE *BIN, dados_t *dados, int RRN)
+void posicao_arquivo_escrita(FILE *BIN, dados_t *dados, long long int posicao, int tipoArquivo)
 {
-    int aux;
-    aux = 182 + (RRN * 97);
+    // Armazenar a posição de agora para voltarmos a ela depois e continuarmos buscando
+    long long int posicaoInicial = ftell(BIN);
+    long long int aux;
+    long long int topoOffset;
+    char removido = '1';
+    // printf("entrei %lld\n", posicao);
+    /*
+    Lógica da pilha:
+    Se o topo não era -1, quer dizer que há outros registros removidos.
+    Assim, devemos:
+    1)Atualizar o topo
+    2)Ir até o novo topo e colocar o "proxRRN" como sendo o topo antigo
+    */
+    if (tipoArquivo == 1)
+    {
+        int topo = -1;
+        int posRRN = -1;
+        fseek(BIN, 1, SEEK_SET);
 
-    fseek(BIN, aux, SEEK_SET);
-    escreve_dados(BIN, dados, 1);
+        fread(&topo, sizeof(int), 1, BIN);
+        fseek(BIN, 1, SEEK_SET);
+        posRRN = (posicao - 182) / 97;
+        fwrite(&posRRN, sizeof(int), 1, BIN);
+        // printf("topo que escrevi: %d\n", posRRN);
+
+        if (topo != -1)
+        {
+            fseek(BIN, posicao, SEEK_SET);
+            fwrite(&removido, sizeof(char), 1, BIN);
+            fwrite(&topo, sizeof(int), 1, BIN);
+        }
+        else
+        {
+            fseek(BIN, posicao, SEEK_SET);
+            fwrite(&removido, sizeof(char), 1, BIN);
+        }
+        fseek(BIN, 178, SEEK_SET);
+        int numRegRemovidos = 0;
+        fread(&numRegRemovidos, sizeof(int), 1, BIN);
+        numRegRemovidos++;
+        fseek(BIN, 178, SEEK_SET);
+        fwrite(&numRegRemovidos, sizeof(int), 1, BIN);
+    }
+
+    /*
+    Lógica da lista:
+    - Se o topo for -1, atualizamos ele com nosso novo registro removido.
+    - Se não for -1, começamos a rodar a lista de removidos, seguindo seus offsets,
+    para descobrir se o tamanho do nosso registro a ser removido é maior. Colocamos ele
+    como removido antes do que for imediatamente menor e depois do que for imediatamente
+    maior. Agora, temos que mudar algumas coisas: O proxOffset do que acabamos de inserir
+    será o offset do removido imediatamente menor que esse. Já o anterior (o removido
+    imediatamente maior) terá como proxOffset o novo que acabamos de inserir como removido.
+    */
+
+    if (tipoArquivo == 2)
+    {
+        long long int topo = 0;
+        int tamanhoAnterior = 0;
+        int proxTamanho = 0;
+        int tamanhoAtual = 0;
+        char removido = '1';
+        long long int posAnterior = -1, proxPos = -1;
+
+        fseek(BIN, 1, SEEK_SET);
+
+        fread(&topo, sizeof(long long int), 1, BIN);
+        // printf("topo: %lld\n", topo);
+        fseek(BIN, posicao, SEEK_SET);
+        fwrite(&removido, 1, sizeof(char), BIN);
+        // printf("tamanho atual: %d\n posicao: %lld\n", tamanhoAtual, posicao);
+        if (topo == -1)
+        {
+            fseek(BIN, 1, SEEK_SET);
+            fwrite(&posicao, sizeof(long long int), 1, BIN);
+        }
+        if (topo != -1)
+        {
+            // printf("cheguei\n");
+            posAnterior = topo;
+            // descobrindo o tamanho do registro a ser removido
+            fseek(BIN, posicao + 1, SEEK_SET);
+            fread(&tamanhoAtual, 1, sizeof(int), BIN);
+
+            int aux = 0;
+            do
+            {
+                fseek(BIN, posAnterior + 1, SEEK_SET);
+                fread(&tamanhoAnterior, 1, sizeof(int), BIN);
+                fread(&proxPos, 1, sizeof(long long int), BIN);
+                // printf("prox: %lld\n", proxPos);
+
+                if (proxPos == -1)
+                {
+                    if (tamanhoAnterior > tamanhoAtual)
+                    {
+                        fseek(BIN, posAnterior, SEEK_SET);
+                        fwrite(&posicao, sizeof(long long int), 1, BIN);
+                        fseek(BIN, 1, SEEK_SET);
+                        fwrite(&posAnterior, sizeof(long long int), 1, BIN);
+                        // printf("topo: %lld\n", posAnterior);
+                    }
+                    else if (tamanhoAnterior < tamanhoAtual)
+                    {
+                        // printf("tamamho anterior: %d atual: %d prox %d\n", tamanhoAnterior, tamanhoAtual, proxTamanho);
+                        fseek(BIN, 1, SEEK_SET);
+                        fwrite(&posicao, sizeof(long long int), 1, BIN);
+                        // printf("topo: %lld\n", posAnterior);
+                        fseek(BIN, posicao + 5, SEEK_SET);
+                        // fread(&tamanhoAnterior, sizeof(int), 1, BIN);
+                        fwrite(&posAnterior, sizeof(long long int), 1, BIN);
+                        proxPos = posAnterior;
+                        posAnterior = posicao;
+                    }
+                }
+                else
+                {
+                    fseek(BIN, proxPos + 1, SEEK_SET);
+                    fread(&proxTamanho, 1, sizeof(int), BIN);
+                    // Condição em que devemos trocar
+                    if (proxTamanho > tamanhoAtual)
+                    {
+                        posAnterior = proxPos;
+
+                        fread(&proxPos, 1, sizeof(long long int), BIN);
+                        //printf("tamanho anterior: %lld \natual: %lld \nprox: %lld\n", posAnterior, posicao, proxPos);
+                    }
+                    else
+                    {
+                   //printf("tamanho anterior: %d \natual: %d \nprox: %d\n", tamanhoAnterior, tamanhoAtual, proxTamanho);
+                    fseek(BIN, posAnterior + 5, SEEK_SET);
+                    fwrite(&posicao, sizeof(long long int), 1, BIN);
+                    fseek(BIN, posicao + 5, SEEK_SET);
+                    fwrite(&proxPos, sizeof(long long int), 1, BIN);
+                    }
+                }
+            } while (tamanhoAtual < proxTamanho || tamanhoAnterior < tamanhoAtual);
+        }
+        fseek(BIN, 186, SEEK_SET);
+        int numRegRemovidos = 0;
+        fread(&numRegRemovidos, sizeof(int), 1, BIN);
+        numRegRemovidos++;
+        fseek(BIN, 186, SEEK_SET);
+        fwrite(&numRegRemovidos, sizeof(int), 1, BIN);
+        // fseek(BIN, 1, SEEK_SET);
+        // fread(&topo, 1, sizeof(int), BIN);
+    }
+    fseek(BIN, posicaoInicial, SEEK_SET);
+    // cabecalho_t *cabecalho = inicia_cabecalho();
+    // ler_cab_arquivo(BIN, cabecalho, tipoArquivo);
+    //  printf("id removido: %d\n", dados->id);
     return;
 }
+
+
+
+void posicao_arquivo_escritaInserção(FILE *BIN, dados_t *dados, long long int posicao, int tipoArquivo)
+{
+    // Armazenar a posição de agora para voltarmos a ela depois e continuarmos buscando
+    long long int posicaoInicial = ftell(BIN);
+    long long int aux;
+    long long int topoOffset;
+    char removido = '1';
+    // printf("entrei %lld\n", posicao);
+    /*
+    Lógica da pilha:
+    Se o topo não era -1, quer dizer que há outros registros removidos.
+    Assim, devemos:
+    1)Atualizar o topo
+    2)Ir até o novo topo e colocar o "proxRRN" como sendo o topo antigo
+    */
+    if (tipoArquivo == 1)
+    {
+        int topo = -1;
+        int posRRN = -1;
+        fseek(BIN, 1, SEEK_SET);
+
+        fread(&topo, sizeof(int), 1, BIN);
+        fseek(BIN, 1, SEEK_SET);
+        posRRN = (posicao - 182) / 97;
+        fwrite(&posRRN, sizeof(int), 1, BIN);
+        // printf("topo que escrevi: %d\n", posRRN);
+
+        if (topo != -1)
+        {
+            fseek(BIN, posicao, SEEK_SET);
+            fwrite(&removido, sizeof(char), 1, BIN);
+            fwrite(&topo, sizeof(int), 1, BIN);
+        }
+        else
+        {
+            fseek(BIN, posicao, SEEK_SET);
+            fwrite(&removido, sizeof(char), 1, BIN);
+        }
+        fseek(BIN, 178, SEEK_SET);
+        int numRegRemovidos = 0;
+        fread(&numRegRemovidos, sizeof(int), 1, BIN);
+        numRegRemovidos++;
+        fseek(BIN, 178, SEEK_SET);
+        fwrite(&numRegRemovidos, sizeof(int), 1, BIN);
+    }
+
+    /*
+    Lógica da lista:
+    - Se o topo for -1, atualizamos ele com nosso novo registro removido.
+    - Se não for -1, começamos a rodar a lista de removidos, seguindo seus offsets,
+    para descobrir se o tamanho do nosso registro a ser removido é maior. Colocamos ele
+    como removido antes do que for imediatamente menor e depois do que for imediatamente
+    maior. Agora, temos que mudar algumas coisas: O proxOffset do que acabamos de inserir
+    será o offset do removido imediatamente menor que esse. Já o anterior (o removido
+    imediatamente maior) terá como proxOffset o novo que acabamos de inserir como removido.
+    */
+
+    if (tipoArquivo == 2)
+    {
+        long long int topo = 0;
+        int tamanhoAnterior = 0;
+        int proxTamanho = 0;
+        int tamanhoAtual = 0;
+        char removido = '1';
+        long long int posAnterior = -1, proxPos = -1;
+
+        fseek(BIN, 1, SEEK_SET);
+
+        fread(&topo, sizeof(long long int), 1, BIN);
+        // printf("topo: %lld\n", topo);
+        fseek(BIN, posicao, SEEK_SET);
+        fwrite(&removido, 1, sizeof(char), BIN);
+        // printf("tamanho atual: %d\n posicao: %lld\n", tamanhoAtual, posicao);
+        if (topo == -1)
+        {
+            fseek(BIN, 1, SEEK_SET);
+            fwrite(&posicao, sizeof(long long int), 1, BIN);
+        }
+        if (topo != -1)
+        {
+            // printf("cheguei\n");
+            posAnterior = topo;
+            // descobrindo o tamanho do registro a ser removido
+            fseek(BIN, posicao + 1, SEEK_SET);
+            fread(&tamanhoAtual, 1, sizeof(int), BIN);
+
+            int aux = 0;
+            do
+            {
+                fseek(BIN, posAnterior + 1, SEEK_SET);
+                fread(&tamanhoAnterior, 1, sizeof(int), BIN);
+                fread(&proxPos, 1, sizeof(long long int), BIN);
+                // printf("prox: %lld\n", proxPos);
+
+                if (proxPos == -1)
+                {
+                    if (tamanhoAnterior > tamanhoAtual)
+                    {
+                        fseek(BIN, posAnterior, SEEK_SET);
+                        fwrite(&posicao, sizeof(long long int), 1, BIN);
+                        fseek(BIN, 1, SEEK_SET);
+                        fwrite(&posAnterior, sizeof(long long int), 1, BIN);
+                        // printf("topo: %lld\n", posAnterior);
+                    }
+                    else if (tamanhoAnterior < tamanhoAtual)
+                    {
+                        // printf("tamamho anterior: %d atual: %d prox %d\n", tamanhoAnterior, tamanhoAtual, proxTamanho);
+                        fseek(BIN, 1, SEEK_SET);
+                        fwrite(&posicao, sizeof(long long int), 1, BIN);
+                        // printf("topo: %lld\n", posAnterior);
+                        fseek(BIN, posicao + 5, SEEK_SET);
+                        // fread(&tamanhoAnterior, sizeof(int), 1, BIN);
+                        fwrite(&posAnterior, sizeof(long long int), 1, BIN);
+                        proxPos = posAnterior;
+                        posAnterior = posicao;
+                    }
+                }
+                else
+                {
+                    fseek(BIN, proxPos + 1, SEEK_SET);
+                    fread(&proxTamanho, 1, sizeof(int), BIN);
+                    // Condição em que devemos trocar
+                    if (proxTamanho > tamanhoAtual)
+                    {
+                        posAnterior = proxPos;
+
+                        fread(&proxPos, 1, sizeof(long long int), BIN);
+                        //printf("tamanho anterior: %lld \natual: %lld \nprox: %lld\n", posAnterior, posicao, proxPos);
+                    }
+                    else
+                    {
+                   //printf("tamanho anterior: %d \natual: %d \nprox: %d\n", tamanhoAnterior, tamanhoAtual, proxTamanho);
+                    fseek(BIN, posAnterior + 5, SEEK_SET);
+                    fwrite(&posicao, sizeof(long long int), 1, BIN);
+                    fseek(BIN, posicao + 5, SEEK_SET);
+                    fwrite(&proxPos, sizeof(long long int), 1, BIN);
+                    }
+                }
+            } while (tamanhoAtual < proxTamanho || tamanhoAnterior < tamanhoAtual);
+        }
+        fseek(BIN, 186, SEEK_SET);
+        int numRegRemovidos = 0;
+        fread(&numRegRemovidos, sizeof(int), 1, BIN);
+        numRegRemovidos++;
+        fseek(BIN, 186, SEEK_SET);
+        fwrite(&numRegRemovidos, sizeof(int), 1, BIN);
+        // fseek(BIN, 1, SEEK_SET);
+        // fread(&topo, 1, sizeof(int), BIN);
+    }
+    fseek(BIN, posicaoInicial, SEEK_SET);
+    // cabecalho_t *cabecalho = inicia_cabecalho();
+    // ler_cab_arquivo(BIN, cabecalho, tipoArquivo);
+    //  printf("id removido: %d\n", dados->id);
+    return;
+}
+
+
+
 
 // funcao de impressao dos registros
 void imprimeDados(dados_t *dados, cabecalho_t *cabecalho)
@@ -972,3 +1482,10 @@ void liberaDados(dados_t *dados)
     free(dados);
     return;
 }
+
+/*
+LISTA:
+
+
+
+*/

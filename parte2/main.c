@@ -21,9 +21,7 @@ int main()
     int n = 0;
 
     scanf("%d", &comando);
-    printf("%d\n", comando);
     scanf("%s", tipoArq);
-    printf("%s\n", tipoArq);
 
     //tranformando o tipo de arquivo para um variavel int
     int tipoArqInt = 0;
@@ -77,16 +75,16 @@ int main()
         scanf("%s", NomeBinario);
         scanf("%s", NomeIndice);
         scanf("%d", &n);
-        //funcionalidade6(tipoArqInt, NomeBinario, NomeIndice);
+        funcionalidade6(tipoArqInt, NomeBinario, NomeIndice, n);
         break;
 
     case 7:
         scanf("%s", NomeBinario);
-        printf("%s\n", NomeBinario);
+        //printf("%s\n", NomeBinario);
         scanf("%s", NomeIndice);
-        printf("%s\n", NomeIndice);
+        //printf("%s\n", NomeIndice);
         scanf("%d", &n);
-        printf("%d\n", n);
+        //printf("%d\n", n);
         funcionalidade7(tipoArqInt, NomeBinario, NomeIndice, n);
         break;
 
