@@ -9,7 +9,7 @@ João Pedro Duarte Nunes - 12542460
 #include "dados.h"
 #include "cabecalhos.h"
 #include "indices.h"
-#include "pilha.h"
+//#include "pilha.h"
 
 void readline(char* string);
 void liberaDados(dados_t * dados);

@@ -251,6 +251,7 @@ void funcionalidade4(char *nomeBinario, int RRN)
         exit(0);
     }
     posArq(BIN, dados, RRN); // funcao responsavel por posicionar o ponteiro corretamente no arquivo
+    
     imprimeDados(dados, cabecalho);
     liberaDados(dados);
     free(cabecalho);
