@@ -47,6 +47,7 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
 
     if (dados->cidade != NULL && strcmp(dados->cidade, "\0") != 0)
         dados->tamanhoCidade = strlen(dados->cidade);
+        printf("Tam cidade: %d\n\n", dados->tamanhoCidade);
     if (dados->tamanhoCidade > 0)
     {
         // Primeiro, o tamanho do nome da cidade, depois o código (0), depois o nome da cidade em si
@@ -57,6 +58,7 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
 
     if (dados->marca != NULL && strcmp(dados->marca, "\0") != 0)
         dados->tamanhoMarca = strlen(dados->marca);
+        printf("Tam marca: %d\n\n", dados->tamanhoMarca);
     if (dados->tamanhoMarca > 0)
     {
         // Primeiro, o tamanho do nome da marca, depois o código (1), depois o nome da marca em si
@@ -66,6 +68,8 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
     }
     if (dados->modelo != NULL && strcmp(dados->modelo, "\0") != 0)
         dados->tamanhoModelo = strlen(dados->modelo);
+        printf("Modelo: %s\n\n", dados->modelo);
+        printf("Tam modelo: %d\n\n", dados->tamanhoModelo);
     if (dados->tamanhoModelo > 0)
     {
         // Primeiro, o tamanho do nome do modelo, depois o código (2), depois o nome do modelo em si

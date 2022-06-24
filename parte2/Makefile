@@ -1,8 +1,8 @@
 all:
 	gcc -o programaTrab *.c
 
-run: cpy clear all
-	./programaTrab
+run: all
+	./programaTrab < 10.in
 
 cpy:
 	cp arquivos/antes/* ./

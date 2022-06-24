@@ -489,21 +489,44 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n){
 
     FILE *fp = abre_bin_leitura(nomeDados);
     FILE *index = abre_bin_leitura(nomeIndice);
-    dados_t *dados = inicializa_dados();
     cabecalho_t *cabecalho = inicia_cabecalho();
+    //regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
     int id, ano, qtt;
+    int numRegRemovidos = 0;
     int count = 0;
     char removido = '1';
     int topo = 0;
     long long int proxRRN = 0;
     long long int aux = 0;
+    int size = 0;
+    char status;
+    /*
+    fseek(index, 0, SEEK_END);
+    int tamanho = ftell(index);
+    fseek(index, 0, SEEK_SET);
+    fread(&status, sizeof(char), 1, index);
+
+    long long int counter = 1;
+    int k = 0;
+    while (counter < tamanho)
+    {
+        indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
+        counter += ler_arquivo_indices(&indices[k], index, tipoArquivo);
+        printf("id: %d rrn: %lld\n", indices[k].id, indices[k].offSet);
+        indices[k].id = indices[k].id;
+        k++;
+    }
+    */
+    
+
+
+
     if(tipoArquivo == 1){
         ler_cab_arquivo(fp, cabecalho, 1);
         fseek(fp, 1, SEEK_SET);
         topo = cabecalho->topo;
-        //printf("%d\n\n", cabecalho->proxRRN);
-        //printf("Topo: %d\n\n", topo);
     }
+
     if(tipoArquivo == 2){
         ler_cab_arquivo(fp, cabecalho, 2);
         topo = cabecalho->topo;
@@ -512,57 +535,60 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n){
     while (count < n)
     {
         regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
+        dados_t *dados = inicializa_dados();
         scanf("%d %d %d", &id, &ano, &qtt);
         dados->id = id;
-        //printf("%d\n\n", id);
         dados->ano = ano;
-        //printf("%d\n\n", ano);
         dados->quantidade = qtt;
-        //printf("%d\n\n", qtt);
         Leitura(dados);
         indices->id = id;
-        //printf("Id: %d\n\n", indices->id);
 
         if(tipoArquivo == 1){
-            if(topo == -1){
+            if(topo == -1){ 
                 indices->proxRRN = cabecalho->proxRRN;
+
                 fseek(fp, 0, SEEK_END);
                 escreve_dados(dados, fp, tipoArquivo);
-                //printf("%d\n\n", cabecalho->proxRRN);
+
                 fseek(index, 0, SEEK_END);
                 escreve_indice(indices, index, tipoArquivo);
                 cabecalho->proxRRN++;
             }else{
                 aux = 182 + (97 * topo);
-                //printf("Aux: %lld\n\n", aux);
                 fseek(fp, aux, SEEK_SET);
                 fread(&removido, sizeof(char), 1, fp);
                 if(removido == '1'){
                     dados->removido = '0';
-                    //printf("Não e mais removido: %c\n\n", dados->removido);
                 }
                 fread(&proxRRN, sizeof(int), 1, fp);
                 indices->proxRRN = proxRRN;
+                fseek(fp, aux, SEEK_SET);
+                printf("Antes de Escrever: %s\n\n", dados->modelo);
                 escreve_dados(dados, fp, tipoArquivo);
-                fseek(index, 0, SEEK_END);
-                escreve_indice(indices, index, tipoArquivo);
-
+                //fseek(index, 0, SEEK_END);
+                //escreve_indice(indexAux, index, tipoArquivo);
+                
                 fseek(fp, 178, SEEK_SET);
-                int numRegRemovidos = 0;
                 fread(&numRegRemovidos, sizeof(int), 1, fp);
                 numRegRemovidos--;
                 fseek(fp, 178, SEEK_SET);
                 fwrite(&numRegRemovidos, sizeof(int), 1, fp);
             }
             topo = proxRRN;
+            printf("%d\n\n", topo);
             count++;
         }
         if(tipoArquivo == 2){
 
         }
     }
+
     fseek(fp, 0, SEEK_SET);
     cabecalho->status = '1';
+    cabecalho->nroRegRemovidos = numRegRemovidos;
+    if(topo > 0){
+        cabecalho->topo = topo;
+    }
     escreve_cabecalho_arquivo(cabecalho, fp, 1);
     fclose(fp);
     fclose(index);
@@ -581,53 +607,40 @@ void Leitura(dados_t *dados)
         {   
             aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            if(aux != ""){
-                dados->sigla = malloc(sizeof(char) * strlen(aux)+1);
-                dados->sigla = aux;
-                aux2 = strlen(aux);
-                dados->sigla[aux2] = '\0';
-                //printf("%s\n\n", dados->sigla);
-            }
+            dados->sigla = malloc(sizeof(char) * strlen(aux)+1);
+            strcpy(dados->sigla, aux);
+            aux2 = strlen(aux);
+            dados->sigla[aux2] = '\0';
         }
+
         if (i == 2)
         {
             aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            if(aux != ""){
-                dados->cidade = malloc(sizeof(char) * strlen(aux)+1);
-                dados->cidade = aux;
-                aux2 = strlen(aux);
-                dados->cidade[aux2] = '\0';
-                //printf("%s\n\n", dados->cidade);
-            }
+            dados->cidade = malloc(sizeof(char) * strlen(aux)+1);
+            strcpy(dados->cidade, aux);
+            aux2 = strlen(aux);
+            dados->cidade[aux2] = '\0';
         }
+
         if (i == 3)
         {
             aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            if(aux != ""){
                 dados->marca = malloc(sizeof(char) * strlen(aux)+1);
-                dados->marca = aux;
+                strcpy(dados->marca, aux);
                 aux2 = strlen(aux);
                 dados->marca[aux2] = '\0';
-                //printf("%s\n\n", dados->marca);
-            }
             
         }
         if (i == 4)
         {
             aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            if(aux != ""){
-                dados->modelo = malloc(sizeof(char) * strlen(aux));
-                dados->modelo = aux;
-                aux2 = strlen(aux);
-                //printf("Aux: %d\n", aux2);
-                dados->modelo[aux2] = '\0';
-                //printf("%s\n\n", dados->modelo);
-                aux2 = strlen(dados->modelo);
-                //printf("%d\n", aux2);
-            }
+            dados->modelo = malloc(sizeof(char) * strlen(aux)+1);
+            strcpy(dados->modelo, aux);
+            aux2 = strlen(aux);
+            dados->modelo[aux2] = '\0';
         }
     }
     free(aux);

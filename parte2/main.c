@@ -80,11 +80,11 @@ int main()
 
     case 7:
         scanf("%s", NomeBinario);
-        printf("%s\n", NomeBinario);
+        //printf("%s\n", NomeBinario);
         scanf("%s", NomeIndice);
-        printf("%s\n", NomeIndice);
+        //printf("%s\n", NomeIndice);
         scanf("%d", &n);
-        printf("%d\n", n);
+        //printf("%d\n", n);
         funcionalidade7(tipoArqInt, NomeBinario, NomeIndice, n);
         break;
 
