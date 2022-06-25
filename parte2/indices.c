@@ -95,7 +95,7 @@ int remover_elemento_array(regIndice_t *indice, int posicao, int tamanho, int ti
     for (int i = posicao; i < tamanho; i++)
     {
         indice[i].id = indice[i + 1].id;
-        if(tipoArquivo == 1)
+        if (tipoArquivo == 1)
             indice[i].proxRRN = indice[i + 1].proxRRN;
         else
             indice[i].offSet = indice[i + 1].offSet;
@@ -103,4 +103,20 @@ int remover_elemento_array(regIndice_t *indice, int posicao, int tamanho, int ti
     indice = (regIndice_t *)realloc(indice, (--tamanho) * sizeof(regIndice_t));
 
     return tamanho;
+}
+
+void atualiza_elemento_array(regIndice_t *indice, int posicao, int tipoArquivo, char *nomeCampo, int valorCampo)
+{
+    if (strcmp("id", nomeCampo) == 0)
+    {
+        indice[posicao].id = valorCampo;
+    }
+    if (strcmp("rrn", nomeCampo) == 0)
+    {
+        indice[posicao].proxRRN = valorCampo;
+    }
+    if (strcmp("offset", nomeCampo) == 0)
+    {
+        indice[posicao].offSet = valorCampo;
+    }
 }

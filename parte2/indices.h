@@ -24,3 +24,4 @@ void escreve_indice(regIndice_t *indice, FILE *fp, int tipo);
 void destruir_indice(regIndice_t *indice);
 int ler_arquivo_indices(regIndice_t *indice, FILE *fp, int tipo);
 int remover_elemento_array(regIndice_t *indice, int posicao, int tamanho, int tipoArquivo);
+void atualiza_elemento_array(regIndice_t *indice, int posicao, int tipoArquivo, char *nomeCampo, int valorCampo);

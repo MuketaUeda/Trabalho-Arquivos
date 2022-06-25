@@ -2,7 +2,7 @@ all:
 	gcc -o programaTrab *.c
 
 run: all
-	./programaTrab < 10.in
+	./programaTrab
 
 cpy:
 	cp arquivos/antes/* ./

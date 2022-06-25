@@ -44,4 +44,4 @@ void Leitura(dados_t *dados);
 void funcionalidade8(int tipoArquivo, char* nomeDados, char* nomeIndice, int n);
 int busca_binaria_id(regIndice_t *indices, int posicaoInicial, int posicaoFinal, int chave);
 
-int *busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo, int trabalho2);
+int *busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo, int trabalho2, int funcionalidade);

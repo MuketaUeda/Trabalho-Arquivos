@@ -80,11 +80,8 @@ int main()
 
     case 7:
         scanf("%s", NomeBinario);
-        //printf("%s\n", NomeBinario);
         scanf("%s", NomeIndice);
-        //printf("%s\n", NomeIndice);
         scanf("%d", &n);
-        //printf("%d\n", n);
         funcionalidade7(tipoArqInt, NomeBinario, NomeIndice, n);
         break;
 
@@ -92,7 +89,7 @@ int main()
         scanf("%s", NomeBinario);
         scanf("%s", NomeIndice);
         scanf("%d", &n);
-        //funcionalidade8(tipoArqInt, NomeBinario, NomeIndice);
+        funcionalidade8(tipoArqInt, NomeBinario, NomeIndice, n);
         break;
 
     default:

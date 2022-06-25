@@ -3,8 +3,8 @@ Trabalho 1 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
-#include "dados.h"
-#include "cabecalhos.h"
+
+#include "funcoes.h"
 #include <string.h>
 
 dados_t *inicializa_dados()
@@ -47,7 +47,6 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
 
     if (dados->cidade != NULL && strcmp(dados->cidade, "\0") != 0)
         dados->tamanhoCidade = strlen(dados->cidade);
-        printf("Tam cidade: %d\n\n", dados->tamanhoCidade);
     if (dados->tamanhoCidade > 0)
     {
         // Primeiro, o tamanho do nome da cidade, depois o código (0), depois o nome da cidade em si
@@ -58,7 +57,6 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
 
     if (dados->marca != NULL && strcmp(dados->marca, "\0") != 0)
         dados->tamanhoMarca = strlen(dados->marca);
-        printf("Tam marca: %d\n\n", dados->tamanhoMarca);
     if (dados->tamanhoMarca > 0)
     {
         // Primeiro, o tamanho do nome da marca, depois o código (1), depois o nome da marca em si
@@ -68,8 +66,6 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
     }
     if (dados->modelo != NULL && strcmp(dados->modelo, "\0") != 0)
         dados->tamanhoModelo = strlen(dados->modelo);
-        printf("Modelo: %s\n\n", dados->modelo);
-        printf("Tam modelo: %d\n\n", dados->tamanhoModelo);
     if (dados->tamanhoModelo > 0)
     {
         // Primeiro, o tamanho do nome do modelo, depois o código (2), depois o nome do modelo em si
@@ -79,10 +75,12 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
     }
 
     fwrite(&dados->removido, sizeof(char), 1, fp);
+    // printf("remov %c\n", dados->removido);
 
     // Agora, vamos escrever o tamanho do registro
     if (tipoArquivo == 1)
         fwrite(&dados->proxRRN, sizeof(int), 1, fp);
+    // printf("prx: %d\n\n", dados->proxRRN);
     if (tipoArquivo == 2)
     {
         fwrite(&dados->tamanhoAtual, sizeof(int), 1, fp);
@@ -162,7 +160,7 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
     tamanhoRegistro += sizeof(char);
     fread(&dados->proxRRN, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
-    //printf("rrn: %d\n", dados->proxRRN);
+    // printf("rrn: %d\n", dados->proxRRN);
     fread(&dados->id, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
     fread(&dados->ano, sizeof(int), 1, fp);
@@ -192,10 +190,13 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
         fread(&codigoElemento, sizeof(char), 1, fp);
         tamanhoRegistro += sizeof(char);
 
-        //verificando se o codigoElemento é valido
-        if (codigoElemento != '0'){
-            if (codigoElemento != '1'){
-                if (codigoElemento != '2'){
+        // verificando se o codigoElemento é valido
+        if (codigoElemento != '0')
+        {
+            if (codigoElemento != '1')
+            {
+                if (codigoElemento != '2')
+                {
                     proximoValido = 0;
                     continue;
                 }
@@ -260,10 +261,10 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
 
     fread(&tamanhoTotal, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
-    //printf("Tamanho total: %d\n", tamanhoTotal);
+    // printf("Tamanho total: %d\n", tamanhoTotal);
     fread(&dados->proxOffset, sizeof(long long int), 1, fp);
     tamanhoRegistro += sizeof(long long int);
-    //printf("offset: %lld\n\n", dados->proxOffset);
+    // printf("offset: %lld\n\n", dados->proxOffset);
     fread(&dados->id, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
 
@@ -293,10 +294,13 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
         fread(&codigoElemento, sizeof(char), 1, fp);
         tamanhoRegistro += sizeof(char);
 
-        //verificando se o codigoElemento é valido
-        if (codigoElemento != '0'){
-            if (codigoElemento != '1'){
-                if (codigoElemento != '2'){
+        // verificando se o codigoElemento é valido
+        if (codigoElemento != '0')
+        {
+            if (codigoElemento != '1')
+            {
+                if (codigoElemento != '2')
+                {
                     proximoValido = 0;
                     continue;
                 }
@@ -343,4 +347,141 @@ int ler_dados_tipo2(FILE *fp, dados_t *dados)
 
     fseek(fp, (tamanhoTotal - tamanhoRegistro), SEEK_CUR); // anda pelo arquivo para a posicao correta
     return tamanhoTotal;
+}
+
+void atualiza_dados_tipo1(FILE *BIN, char **nomeCamposAtualiza, char **valorCamposAtualiza, int n, int idAtualiza)
+{
+    int wtf = 0;
+
+    // Vamos primeiro percorrer o primeiro cabeçalho. Só para chegarmos nos dados e pegarmos alguns valores
+    // fseek(BIN, 0, SEEK_SET);
+    cabecalho_t *cabecalho = inicia_cabecalho();
+    ler_cab_arquivo(BIN, cabecalho, 1);
+
+    dados_t *dados = inicializa_dados();
+
+    long long int count = 0;
+    int registroEncontrado = 0;
+    long long int prox = 0;
+
+    // Verificação do tipo do arquivo
+    // if (tipoArquivo == 1)
+    prox = cabecalho->proxRRN;
+    // else if (tipoArquivo == 2)
+    //   prox = cabecalho->proxByteOffset;
+
+    int tamanhoTotal = 0;
+    long long int posicao = -1;
+    int c = 0;
+
+    while (dados->id != idAtualiza)
+    {
+        dados = inicializa_dados();
+        posicao = ftell(BIN);
+        ler_dados_tipo1(BIN, dados);
+    }
+    //printf("ID: %d\n", );
+    //imprimeDados(dados, cabecalho);
+
+    // printf("nome: %s valor: %s\n", dados->marca,dados->sigla);
+    //   imprimeDados(dados, cabecalho);
+    //    printf("count %lld id %d\n", count, dados->id);
+    int i = 0;
+    int tamanhoCampo = 0;
+    // dois loops: primeiro, para fazermos a contagem de quantos campos foram satisfeitos. Depois, para encontrarmos cada campo
+    while (i < n)
+    {
+        // printf("oioi %d\n", n);
+        fseek(BIN, posicao, SEEK_SET);
+        for (int j = 0; j < 7; j++)
+        {
+            if (j == 0)
+            {
+                if (strcmp(nomeCamposAtualiza[i], "id") == 0)
+                {
+
+                    dados->id = atoi(valorCamposAtualiza[i]);
+                }
+            }
+            if (j == 1)
+            {
+                if (strcmp(nomeCamposAtualiza[i], "ano") == 0)
+                {
+                    dados->ano = atoi(valorCamposAtualiza[i]);
+                }
+            }
+            if (j == 2)
+            {
+                if (strcmp(nomeCamposAtualiza[i], "qtt") == 0)
+                {
+                    dados->quantidade = atoi(valorCamposAtualiza[i]);
+                }
+            }
+            if (j == 3)
+            {
+                if (strcmp(nomeCamposAtualiza[i], "sigla") == 0)
+                {
+
+                    dados->sigla = valorCamposAtualiza[i];
+                }
+            }
+            if (j == 4)
+            {
+                if (strcmp(nomeCamposAtualiza[i], "cidade") == 0)
+                {
+                    int tamanhoAtualizado = strlen(valorCamposAtualiza[i]);
+
+                    dados->cidade = valorCamposAtualiza[i];
+                    dados->tamanhoCidade = tamanhoAtualizado;
+                }
+            }
+            if (j == 5)
+            {
+                if (strcmp(nomeCamposAtualiza[i], "marca") == 0)
+                {
+                    int tamanhoAtualizado = strlen(valorCamposAtualiza[i]);
+
+                    dados->marca = valorCamposAtualiza[i];
+                    dados->tamanhoMarca = tamanhoAtualizado;
+                }
+            }
+            if (j == 6)
+            {
+                if (strcmp(nomeCamposAtualiza[i], "modelo") == 0)
+                {
+                    // printf("modelo: %s\n", valorCamposAtualiza[i]);
+                    int tamanhoAtualizado = strlen(valorCamposAtualiza[i]);
+                    dados->modelo = valorCamposAtualiza[i];
+                    dados->tamanhoModelo = tamanhoAtualizado;
+                }
+            }
+        }
+        i++;
+        // printf("oioi %s\n", dados->cidade);
+        fseek(BIN, posicao, SEEK_SET);
+        //printf("ID: %d\n", dados->id);
+        //imprimeDados(dados, cabecalho);
+        escreve_dados(dados, BIN, 1);
+        //  fseek(BIN, posicao + 5, SEEK_SET);
+        //  fread(&id, sizeof(int), 1, BIN);
+    }
+
+    // imprimeDados(dados, cabecalho);
+    // liberaDados(dados);
+    // free(cabecalho);
+    // colocando início para pegarmos o tamanho do array depois em O(1)
+    // printf("num: %d\n", numRegRemovidos);
+    // printf("indices remov: %d\n",indicesRemovidos[0]);
+    return;
+}
+
+// funcao de liberacao de memoria para os dados
+void liberaDados(dados_t *dados)
+{
+    free(dados->cidade);
+    free(dados->marca);
+    free(dados->modelo);
+    free(dados->sigla);
+    free(dados);
+    return;
 }
