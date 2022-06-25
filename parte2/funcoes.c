@@ -383,6 +383,7 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
     char **nomeCampos = (char **)malloc(sizeof(char *));
     char **valorCampos = (char **)malloc(sizeof(char *));
     int ids[numRemocoes];
+
     int c = 0;
     while (counter2 < numRemocoes)
     {
@@ -448,16 +449,15 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
             int numIndicesRemovidos = 0;
             indicesRemovidos = busca(arqDados, nomeCampos, valorCampos, numCampos, tipoArquivo, 1);
             numIndicesRemovidos = indicesRemovidos[0];
-            //printf("num indices: %d\n", numIndicesRemovidos);
-            //printf("num Indices: %d\n", numIndicesRemovidos);
+            // printf("num indices: %d\n", numIndicesRemovidos);
+            // printf("num Indices: %d\n", numIndicesRemovidos);
             for (int i = 0; i < numIndicesRemovidos; i++)
             {
                 posicaoID = busca_binaria_id(indices, 0, (size - 1), indicesRemovidos[i + 1]);
-                //printf("indice Pos: %d indice certo: %d\n", indices[posicaoID].id, indicesRemovidos[i]);
+                // printf("indice Pos: %d indice certo: %d\n", indices[posicaoID].id, indicesRemovidos[i]);
                 if (indicesRemovidos[i + 1] != 0)
                     size = remover_elemento_array(indices, posicaoID, size, tipoArquivo);
-                //printf("%d\n", ++c);
-                
+                // printf("%d\n", ++c);
             }
 
             idVerify = -1;
@@ -472,7 +472,7 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
 
     while (i < size)
     {
-        //printf("id: %d offset: %lld\n", indices[i].id, indices[i].offSet);
+        // printf("id: %d offset: %lld\n", indices[i].id, indices[i].offSet);
         escreve_indice(&indices[i], arqIndice, tipoArquivo);
         i++;
     }
@@ -485,89 +485,135 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
     return;
 }
 
-void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n){
+void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
+{
 
     FILE *fp = abre_bin_leitura(nomeDados);
-    FILE *index = abre_bin_leitura(nomeIndice);
+    FILE *arqIndice = abre_bin_leitura(nomeIndice);
     cabecalho_t *cabecalho = inicia_cabecalho();
-    //regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
+    // regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
     int id, ano, qtt;
     int numRegRemovidos = 0;
     int count = 0;
     char removido = '1';
     int topo = 0;
+    long long int topotipo2 = 0;
     long long int proxRRN = 0;
     long long int aux = 0;
-    int size = 0;
-    char status;
+    // int size = 0;
+    char status = '0';
+
+    // copiei a func que voce fez na func6 isso porque eu preciso reescrever os novos indices no arquivo final, para isso eu preciso ler os que ja estão, e inserir
+    // no array de struct para poder no fim escrever os mesmos de forma ordenada no arquivo
     /*
-    fseek(index, 0, SEEK_END);
-    int tamanho = ftell(index);
-    fseek(index, 0, SEEK_SET);
-    fread(&status, sizeof(char), 1, index);
+    fseek(arqIndice, 0, SEEK_END);
+    int tamanho = ftell(arqIndice);
+    fseek(arqIndice, 0, SEEK_SET);
+    fread(&status, sizeof(char), 1, arqIndice);
 
     long long int counter = 1;
     int k = 0;
     while (counter < tamanho)
     {
         indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
-        counter += ler_arquivo_indices(&indices[k], index, tipoArquivo);
+        counter += ler_arquivo_indices(&indices[k], arqIndice, tipoArquivo);
         printf("id: %d rrn: %lld\n", indices[k].id, indices[k].offSet);
         indices[k].id = indices[k].id;
         k++;
     }
     */
-    
 
-
-
-    if(tipoArquivo == 1){
+    if (tipoArquivo == 1)
+    {
         ler_cab_arquivo(fp, cabecalho, 1);
         fseek(fp, 1, SEEK_SET);
         topo = cabecalho->topo;
-    }
 
-    if(tipoArquivo == 2){
-        ler_cab_arquivo(fp, cabecalho, 2);
-        topo = cabecalho->topo;
-    }
-
-    while (count < n)
-    {
         regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
-        dados_t *dados = inicializa_dados();
-        scanf("%d %d %d", &id, &ano, &qtt);
-        dados->id = id;
-        dados->ano = ano;
-        dados->quantidade = qtt;
-        Leitura(dados);
-        indices->id = id;
+        while (count < n)
+        {
+            regIndice_t *indices = (regIndice_t *)realloc(indices, 1 * sizeof(regIndice_t));
+            dados_t *dados = inicializa_dados();
+            scanf("%d %d %d", &id, &ano, &qtt);
+            dados->id = id;
+            dados->ano = ano;
+            dados->quantidade = qtt;
+            Leitura(dados);
 
-        if(tipoArquivo == 1){
-            if(topo == -1){ 
+            if (topo == -1)
+            {
+                indices->id = id;
                 indices->proxRRN = cabecalho->proxRRN;
 
                 fseek(fp, 0, SEEK_END);
                 escreve_dados(dados, fp, tipoArquivo);
 
-                fseek(index, 0, SEEK_END);
-                escreve_indice(indices, index, tipoArquivo);
+                fseek(arqIndice, 0, SEEK_END);
+                escreve_indice(indices, arqIndice, tipoArquivo);
                 cabecalho->proxRRN++;
-            }else{
+            }
+            else
+            {
                 aux = 182 + (97 * topo);
                 fseek(fp, aux, SEEK_SET);
                 fread(&removido, sizeof(char), 1, fp);
-                if(removido == '1'){
+                if (removido == '1')
+                {
                     dados->removido = '0';
                 }
                 fread(&proxRRN, sizeof(int), 1, fp);
-                indices->proxRRN = proxRRN;
+                // indices->proxRRN = proxRRN;
                 fseek(fp, aux, SEEK_SET);
-                printf("Antes de Escrever: %s\n\n", dados->modelo);
+                // printf("Antes de Escrever: %s\n\n", dados->modelo);
                 escreve_dados(dados, fp, tipoArquivo);
-                //fseek(index, 0, SEEK_END);
-                //escreve_indice(indexAux, index, tipoArquivo);
+
+                /*
+                Ler todo o arquivo de índices
+                Adicionar o novo índice na struct
+                ordenar
+                escrever de volta
+                */
+
+                fseek(arqIndice, 0, SEEK_END);
+                int tamanho = ftell(arqIndice);
+                fseek(arqIndice, 0, SEEK_SET);
+                fread(&status, sizeof(char), 1, arqIndice);
+
+                int size = 0;
+                long long int counter = 1;
+                int k = 0;
+                while (counter < tamanho)
+                {
+                    indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
+                    counter += ler_arquivo_indices(&indices[k], arqIndice, tipoArquivo);
+                    // printf("id: %d rrn: %lld\n", indices[k].id, indices[k].offSet);
+                    indices[k].id = indices[k].id;
+                    k++;
+                }
+                indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
+                indices[k].id = id;
+                indices[k].proxRRN = proxRRN;
+                // printf("id: %d rrn: %lld\n", indices[k].id, indices[k].offSet);
+                indices[k].id = indices[k].id;
+
+                indices = insertionSort(indices, size);
+                // oi
+                fseek(arqIndice, 0, SEEK_END);
+                escreve_indice(indices, arqIndice, tipoArquivo);
+
+                fclose(arqIndice);
+                arqIndice = abre_bin_escrita(nomeIndice);
                 
+                fwrite(&cabecalho->status, sizeof(char), 1, arqIndice);
+                int i = 0;
+
+                while (i < size)
+                {
+                    // printf("id: %d offset: %lld\n", indices[i].id, indices[i].offSet);
+                    escreve_indice(&indices[i], arqIndice, tipoArquivo);
+                    i++;
+                }
+
                 fseek(fp, 178, SEEK_SET);
                 fread(&numRegRemovidos, sizeof(int), 1, fp);
                 numRegRemovidos--;
@@ -578,20 +624,31 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n){
             printf("%d\n\n", topo);
             count++;
         }
-        if(tipoArquivo == 2){
 
+        fseek(fp, 0, SEEK_SET);
+        cabecalho->status = '1';
+        cabecalho->nroRegRemovidos = numRegRemovidos;
+        if (topo > 0)
+        {
+            cabecalho->topo = topo;
+        }
+        escreve_cabecalho_arquivo(cabecalho, fp, 1);
+    }
+
+    if (tipoArquivo == 2)
+    {
+        ler_cab_arquivo(fp, cabecalho, 2);
+        topotipo2 = cabecalho->topo;
+
+        while (count < n)
+        {
+
+            count++;
         }
     }
 
-    fseek(fp, 0, SEEK_SET);
-    cabecalho->status = '1';
-    cabecalho->nroRegRemovidos = numRegRemovidos;
-    if(topo > 0){
-        cabecalho->topo = topo;
-    }
-    escreve_cabecalho_arquivo(cabecalho, fp, 1);
     fclose(fp);
-    fclose(index);
+    fclose(arqIndice);
     binarioNaTela(nomeDados);
     binarioNaTela(nomeIndice);
     return;
@@ -604,10 +661,10 @@ void Leitura(dados_t *dados)
     for (int i = 1; i < 5; i++)
     {
         if (i == 1)
-        {   
+        {
             aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            dados->sigla = malloc(sizeof(char) * strlen(aux)+1);
+            dados->sigla = malloc(sizeof(char) * strlen(aux) + 1);
             strcpy(dados->sigla, aux);
             aux2 = strlen(aux);
             dados->sigla[aux2] = '\0';
@@ -617,7 +674,7 @@ void Leitura(dados_t *dados)
         {
             aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            dados->cidade = malloc(sizeof(char) * strlen(aux)+1);
+            dados->cidade = malloc(sizeof(char) * strlen(aux) + 1);
             strcpy(dados->cidade, aux);
             aux2 = strlen(aux);
             dados->cidade[aux2] = '\0';
@@ -627,17 +684,16 @@ void Leitura(dados_t *dados)
         {
             aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-                dados->marca = malloc(sizeof(char) * strlen(aux)+1);
-                strcpy(dados->marca, aux);
-                aux2 = strlen(aux);
-                dados->marca[aux2] = '\0';
-            
+            dados->marca = malloc(sizeof(char) * strlen(aux) + 1);
+            strcpy(dados->marca, aux);
+            aux2 = strlen(aux);
+            dados->marca[aux2] = '\0';
         }
         if (i == 4)
         {
             aux = malloc(sizeof(char) * 50);
             scan_quote_string(aux);
-            dados->modelo = malloc(sizeof(char) * strlen(aux)+1);
+            dados->modelo = malloc(sizeof(char) * strlen(aux) + 1);
             strcpy(dados->modelo, aux);
             aux2 = strlen(aux);
             dados->modelo[aux2] = '\0';
@@ -789,7 +845,6 @@ int *busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArqu
     else if (tipoArquivo == 2)
         prox = cabecalho->proxByteOffset;
 
-
     int tamanhoTotal = 0;
     long long int posicao = -1;
     int c = 0;
@@ -918,17 +973,16 @@ int *busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArqu
             count++;
 
         liberaDados(dados);
-
     }
     if (registroEncontrado == 0 && trabalho2 == 0)
     {
         printf("Registro inexistente\n");
     }
     free(cabecalho);
-    //colocando início para pegarmos o tamanho do array depois em O(1)
-    //printf("num: %d\n", numRegRemovidos);
+    // colocando início para pegarmos o tamanho do array depois em O(1)
+    // printf("num: %d\n", numRegRemovidos);
     indicesRemovidos[0] = numRegRemovidos - 1;
-    //printf("indices remov: %d\n",indicesRemovidos[0]);
+    // printf("indices remov: %d\n",indicesRemovidos[0]);
     return indicesRemovidos;
 }
 
@@ -1147,7 +1201,7 @@ void posicao_arquivo_escrita(FILE *BIN, dados_t *dados, long long int posicao, i
 
     if (tipoArquivo == 2)
     {
-        //printf("posicao: %lld\n", posicao);
+        // printf("posicao: %lld\n", posicao);
         long long int topo = 0;
         // int tamanhoAnterior = 0;
         int tamanho = 0;
@@ -1190,15 +1244,15 @@ void posicao_arquivo_escrita(FILE *BIN, dados_t *dados, long long int posicao, i
 
             if (keySize >= tamanho)
             {
-                //printf("keysize: %d tamanho %d pos %lld\n", keySize, tamanho, posicao);
-                // topo vira a key position
+                // printf("keysize: %d tamanho %d pos %lld\n", keySize, tamanho, posicao);
+                //  topo vira a key position
                 fseek(BIN, 1, SEEK_SET);
                 fwrite(&temp, sizeof(long long int), 1, BIN);
                 fseek(BIN, keyPosition + 5, SEEK_SET);
                 // proxima posiçao vira a posiçao do antigo topo
                 fwrite(&keyPosition, sizeof(long long int), 1, BIN);
-                //printf("posicao: %lld \ntopo: %lld\ntemp: %lld \nkeySize %d\ntamanho %d\n\n\n", keyPosition, topo, temp, keySize, tamanho);
-                // printf("tamanho %d, keysize: %d\n\n", keySize, tamanho);
+                // printf("posicao: %lld \ntopo: %lld\ntemp: %lld \nkeySize %d\ntamanho %d\n\n\n", keyPosition, topo, temp, keySize, tamanho);
+                //  printf("tamanho %d, keysize: %d\n\n", keySize, tamanho);
             }
 
             fseek(BIN, temp + 1, SEEK_SET);
