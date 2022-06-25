@@ -485,42 +485,23 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
     return;
 }
 
+
 void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
 {
 
     FILE *fp = abre_bin_leitura(nomeDados);
     FILE *arqIndice = abre_bin_leitura(nomeIndice);
     cabecalho_t *cabecalho = inicia_cabecalho();
-    // regIndice_t *indices = (regIndice_t *)malloc(1 * sizeof(regIndice_t));
-    int id, ano, qtt;
     int numRegRemovidos = 0;
     int count = 0;
     char removido = '1';
     int topo = 0;
     long long int topotipo2 = 0;
     long long int proxRRN = 0;
+    long long int byteOffSet = 0;
     long long int aux = 0;
-    // int size = 0;
     char status = '0';
 
-    // copiei a func que voce fez na func6 isso porque eu preciso reescrever os novos indices no arquivo final, para isso eu preciso ler os que ja estão, e inserir
-    // no array de struct para poder no fim escrever os mesmos de forma ordenada no arquivo
-    /*
-    fseek(arqIndice, 0, SEEK_END);
-    int tamanho = ftell(arqIndice);
-    fseek(arqIndice, 0, SEEK_SET);
-    fread(&status, sizeof(char), 1, arqIndice);
-    long long int counter = 1;
-    int k = 0;
-    while (counter < tamanho)
-    {
-        indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
-        counter += ler_arquivo_indices(&indices[k], arqIndice, tipoArquivo);
-        printf("id: %d rrn: %lld\n", indices[k].id, indices[k].offSet);
-        indices[k].id = indices[k].id;
-        k++;
-    }
-    */
 
     if (tipoArquivo == 1)
     {
@@ -531,17 +512,13 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
         while (count < n)
         {
             indices = (regIndice_t *)realloc(indices, sizeof(regIndice_t));
-            // printf("oioi\n");
             dados_t *dados = inicializa_dados();
-            scanf("%d %d %d", &id, &ano, &qtt);
-            dados->id = id;
-            dados->ano = ano;
-            dados->quantidade = qtt;
+            
             Leitura(dados);
 
             if (topo == -1)
             {
-                indices->id = id;
+                indices->id = dados->id;
                 indices->proxRRN = cabecalho->proxRRN;
 
                 fseek(fp, 0, SEEK_END);
@@ -561,9 +538,7 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
                     dados->removido = '0';
                 }
                 fread(&proxRRN, sizeof(int), 1, fp);
-                // indices->proxRRN = proxRRN;
                 fseek(fp, aux, SEEK_SET);
-                // printf("Antes de Escrever: %s\n\n", dados->modelo);
                 escreve_dados(dados, fp, tipoArquivo);
 
                 /*
@@ -585,30 +560,26 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
                 {
                     indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
                     counter += ler_arquivo_indices(&indices[k], arqIndice, tipoArquivo);
-                    // printf("id: %d rrn: %d, k %d\n", indices[k].id, indices[k].proxRRN, 5);
                     indices[k].id = indices[k].id;
                     k++;
                 }
                 indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
-                indices[k].id = id;
+                indices[k].id = dados->id;
                 indices[k].proxRRN = topo;
-                // printf("id: %d rrn: %lld\n", indices[k].id, indices[k].offSet);
                 indices[k].id = indices[k].id;
 
                 indices = insertionSort(indices, size);
-                // oi
                 fseek(arqIndice, 0, SEEK_END);
                 escreve_indice(indices, arqIndice, tipoArquivo);
 
                 fclose(arqIndice);
                 arqIndice = abre_bin_escrita(nomeIndice);
-
+                
                 fwrite(&cabecalho->status, sizeof(char), 1, arqIndice);
                 int i = 0;
 
                 while (i < size)
                 {
-                    // printf("id: %d offset: %d\n", indices[i].id, indices[i].proxRRN);
                     escreve_indice(&indices[i], arqIndice, tipoArquivo);
                     i++;
                 }
@@ -620,7 +591,6 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
                 fwrite(&numRegRemovidos, sizeof(int), 1, fp);
             }
             topo = proxRRN;
-            // printf("%d\n\n", topo);
             count++;
         }
 
@@ -633,17 +603,135 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
         }
         escreve_cabecalho_arquivo(cabecalho, fp, 1);
     }
-
+    
     if (tipoArquivo == 2)
     {
+        int tam = 0;
+        int tamReg = 0;
         ler_cab_arquivo(fp, cabecalho, 2);
         topotipo2 = cabecalho->topo;
+        //printf("Topo: %lld\n\n", topotipo2);
+
+        fseek(fp, topotipo2+1, SEEK_SET);
+        fread(&tamReg, sizeof(int), 1, fp);
+        //printf("Tam reg: %d\n\n", tamReg);
+
+
+
+        regIndice_t *indices = (regIndice_t *)malloc(sizeof(regIndice_t));
 
         while (count < n)
         {
+            indices = (regIndice_t *)realloc(indices, sizeof(regIndice_t));
+            dados_t *dados = inicializa_dados();
+            tam = LeituraTipo2(dados);
+            tam += 13; //proxOffset + removido + tamanhoAtual
+            //printf("Tam: %d\n\n", tam);
 
+            if(topotipo2 == -1){
+                indices->id = dados->id;
+                indices->offSet = cabecalho->proxByteOffset;
+                fseek(fp, 0, SEEK_END);
+                escreve_dados(dados, fp, tipoArquivo);
+
+                fseek(arqIndice, 0, SEEK_END);
+                escreve_indice(indices, arqIndice, tipoArquivo);
+                cabecalho->proxByteOffset = ftell(fp);
+
+            }
+            else if(tam > tamReg){
+
+                indices->id = dados->id;
+                indices->offSet = cabecalho->proxByteOffset;
+
+                fseek(fp, 0, SEEK_END);
+                escreve_dados(dados, fp, tipoArquivo);
+
+                fseek(arqIndice, 0, SEEK_END);
+                escreve_indice(indices, arqIndice, tipoArquivo);
+                cabecalho->proxByteOffset = ftell(fp);
+            }else{
+                aux = topotipo2;
+                //printf("Aux: %lld\n\n", aux);
+                fseek(fp, aux, SEEK_SET);
+                fread(&removido, sizeof(char), 1, fp);
+                //printf("Removido: %c\n\n", removido);
+                if (removido == '1')
+                {
+                    dados->removido = '0';
+                    //printf("Removido: %c\n\n", dados->removido);
+                }
+                fseek(fp, aux+2, SEEK_SET);
+                fread(&byteOffSet, sizeof(int), 1, fp);
+                //printf("ByteOfsett: %lld\n\n", byteOffSet);
+                fseek(fp, aux, SEEK_SET);
+                escreve_dados(dados, fp, 2);
+                char *lixo = (char *)malloc(tamReg - tam);
+                for (int i = 0; i < (tamReg - tam); i++)
+                {
+                    lixo[i] = '$';
+                }
+                fwrite(lixo, sizeof(char), tamReg - tam, fp);
+                free(lixo);
+
+                fseek(arqIndice, 0, SEEK_END);
+                int tamanho = ftell(arqIndice);
+                fseek(arqIndice, 0, SEEK_SET);
+                fread(&status, sizeof(char), 1, arqIndice);
+
+                int size = 0;
+                long long int counter = 1;
+                int k = 0;
+                while (counter < tamanho)
+                {
+                    indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
+                    counter += ler_arquivo_indices(&indices[k], arqIndice, tipoArquivo);
+                    indices[k].id = indices[k].id;
+                    k++;
+                }
+                indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
+                indices[k].id = dados->id;
+                indices[k].offSet = topo;
+                indices[k].id = indices[k].id;
+
+                indices = insertionSort(indices, size);
+                fseek(arqIndice, 0, SEEK_END);
+                escreve_indice(indices, arqIndice, tipoArquivo);
+
+                fclose(arqIndice);
+                arqIndice = abre_bin_escrita(nomeIndice);
+                
+                fwrite(&cabecalho->status, sizeof(char), 1, arqIndice);
+                int i = 0;
+
+                while (i < size)
+                {
+                    escreve_indice(&indices[i], arqIndice, tipoArquivo);
+                    i++;
+                }
+
+                fseek(fp, 186, SEEK_SET);
+                int numRegRemovidos = 0;
+                fread(&numRegRemovidos, sizeof(int), 1, fp);
+                //printf("NumRemovidos: %d\n\n", numRegRemovidos);
+                numRegRemovidos--;
+                fseek(fp, 186, SEEK_SET);
+                fwrite(&numRegRemovidos, sizeof(int), 1, fp);
+                cabecalho->nroRegRemovidos = numRegRemovidos;
+                //printf("NumRemovidos: %d\n\n", numRegRemovidos);
+                topotipo2 = byteOffSet;
+                //printf("Topo fim: %lld\n\n", topotipo2);
+            }
             count++;
         }
+        fseek(fp, 0, SEEK_SET);
+        cabecalho->status = '1';
+        if (topotipo2 > 0)
+        {
+            cabecalho->topo = topotipo2;
+        }
+        
+        escreve_cabecalho_arquivo(cabecalho, fp, 2);
     }
 
     fclose(fp);
@@ -657,6 +745,24 @@ void Leitura(dados_t *dados)
 {
     char *aux;
     int aux2;
+    char* id = malloc(sizeof(char) * 10);
+    char* ano = malloc(sizeof(char) * 10);
+    char* qtt = malloc(sizeof(char) *10);
+
+    scanf("%s %s %s", id, ano, qtt);
+    //printf("%s\n\n", id);
+    //printf("%s\n\n", ano);
+    //printf("%s\n\n", qtt);
+    if(strcmp(id, "NULO") != 0){
+        dados->id = atoi(id);
+    }
+    if(strcmp(ano, "NULO") != 0){
+        dados->ano = atoi(ano);
+    }
+    if(strcmp(qtt, "NULO") != 0){
+        dados->quantidade = atoi(qtt);
+    }
+
     for (int i = 1; i < 5; i++)
     {
         if (i == 1)
@@ -677,6 +783,7 @@ void Leitura(dados_t *dados)
             strcpy(dados->cidade, aux);
             aux2 = strlen(aux);
             dados->cidade[aux2] = '\0';
+
         }
 
         if (i == 3)
@@ -699,7 +806,104 @@ void Leitura(dados_t *dados)
         }
     }
     free(aux);
+    free(id);
+    free(ano);
+    free(qtt);
+    return;
 }
+
+int LeituraTipo2(dados_t *dados)
+{   
+    int tamAtual = 0;
+    char *aux;
+    int aux2;
+    char* id = malloc(sizeof(char) * 10);
+    char* ano = malloc(sizeof(char) * 10);
+    char* qtt = malloc(sizeof(char) *10);
+
+    scanf("%s %s %s", id, ano, qtt);
+    //printf("%s\n\n", id);
+    //printf("%s\n\n", ano);
+    //printf("%s\n\n", qtt);
+    if(strcmp(id, "NULO") != 0){
+        dados->id = atoi(id);
+        tamAtual += sizeof(int);
+    }
+    if(strcmp(ano, "NULO") != 0){
+        dados->ano = atoi(ano);
+        tamAtual += sizeof(int);
+    }
+    if(strcmp(qtt, "NULO") != 0){
+        dados->quantidade = atoi(qtt);
+        tamAtual += sizeof(int);
+    }
+
+    for (int i = 1; i < 5; i++)
+    {
+        if (i == 1)
+        {
+            aux = malloc(sizeof(char) * 50);
+            scan_quote_string(aux);
+            if(strlen(aux) > 0){
+                dados->sigla = malloc(sizeof(char) * strlen(aux) + 1);
+                strcpy(dados->sigla, aux);
+                aux2 = strlen(aux);
+                dados->sigla[aux2] = '\0';
+                tamAtual += sizeof(char)*2; //espaco ocupado pela sigla
+            }
+        }
+
+        if (i == 2)
+        {
+            aux = malloc(sizeof(char) * 50);
+            scan_quote_string(aux);
+            if(strlen(aux) > 0){
+                dados->cidade = malloc(sizeof(char) * strlen(aux) + 1);
+                strcpy(dados->cidade, aux);
+                aux2 = strlen(aux);
+                dados->cidade[aux2] = '\0';
+                tamAtual += sizeof(char)*aux2; //espaco ocupado pela string
+                tamAtual += sizeof(int); //tamanho do campo
+                tamAtual += sizeof(char); //codigo
+            }
+        }
+
+        if (i == 3)
+        {
+            aux = malloc(sizeof(char) * 50);
+            scan_quote_string(aux);
+            if(strlen(aux) > 0){
+                dados->marca = malloc(sizeof(char) * strlen(aux) + 1);
+                strcpy(dados->marca, aux);
+                aux2 = strlen(aux);
+                dados->marca[aux2] = '\0';
+                tamAtual += sizeof(char)*aux2; //espaco ocupado pela string
+                tamAtual += sizeof(int); //tamanho do campo
+                tamAtual += sizeof(char); //codigo
+            }
+        }
+        if (i == 4)
+        {
+            aux = malloc(sizeof(char) * 50);
+            scan_quote_string(aux);
+            if(strlen(aux) > 0){
+                dados->modelo = malloc(sizeof(char) * strlen(aux) + 1);
+                strcpy(dados->modelo, aux);
+                aux2 = strlen(aux);
+                dados->modelo[aux2] = '\0';
+                tamAtual += sizeof(char)*aux2; //espaco ocupado pela string
+                tamAtual += sizeof(int); //tamanho do campo
+                tamAtual += sizeof(char); //codigo
+            }
+        }
+    }
+    free(aux);
+    free(id);
+    free(ano);
+    free(qtt);
+    return tamAtual;
+}
+
 
 void funcionalidade8(int tipoArquivo, char *nomeDados, char *nomeIndice, int numAtualizacoes)
 {

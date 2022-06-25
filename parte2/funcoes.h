@@ -40,6 +40,7 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int n);
 void funcionalidade7(int tipoArquivo, char* nomeDados, char* nomeIndice, int n);
 
 void Leitura(dados_t *dados);
+int LeituraTipo2(dados_t *dados);
 
 void funcionalidade8(int tipoArquivo, char* nomeDados, char* nomeIndice, int n);
 int busca_binaria_id(regIndice_t *indices, int posicaoInicial, int posicaoFinal, int chave);

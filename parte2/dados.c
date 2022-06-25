@@ -93,6 +93,20 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
 
     fwrite(&dados->quantidade, sizeof(int), 1, fp);
 
+    /*
+    if(dados->id != -1){
+        fwrite(&dados->id, sizeof(int), 1, fp);
+    }
+
+    if(dados->ano != -1){
+        fwrite(&dados->ano, sizeof(int), 1, fp);
+    }
+
+    if(dados->quantidade != -1){
+        fwrite(&dados->quantidade, sizeof(int), 1, fp);
+    }
+    */
+
     if (strlen(dados->sigla) > 0)
     {
         fwrite(dados->sigla, sizeof(char), 2, fp);
