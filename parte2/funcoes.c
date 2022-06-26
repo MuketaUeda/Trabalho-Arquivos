@@ -493,10 +493,7 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
     FILE *arqIndice = abre_bin_leitura(nomeIndice);
     cabecalho_t *cabecalho = inicia_cabecalho();
     regIndice_t *indices = (regIndice_t *)malloc(sizeof(regIndice_t));
-    int numRegRemovidos = 0;
     int count = 0;
-    char removido = '1';
-    char status = '0';
 
     if (tipoArquivo == 1)
     {
@@ -504,6 +501,7 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
         long long int proxRRN = 0;
         long long int aux = 0;
 
+        //recebendo o topo da pilha de removidos
         ler_cab_arquivo(fp, cabecalho, 1);
         fseek(fp, 1, SEEK_SET);
         topo = cabecalho->topo;
@@ -513,8 +511,10 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
             indices = (regIndice_t *)realloc(indices, sizeof(regIndice_t));
             dados_t *dados = inicializa_dados();
 
+            //funcao de leitura para os novos registros
             Leitura(dados);
 
+            //se o topo for -1 escreve no fim dos arquivos de dados e index
             if (topo == -1)
             {
                 indices->id = dados->id;
@@ -527,31 +527,37 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
                 escreve_indice(indices, arqIndice, tipoArquivo);
                 cabecalho->proxRRN++;
             }
+            //caso contrario acha posicao onde deve ser inserido e reordena o arquivo de index
             else
             {
-                aux = 182 + (97 * topo);
+                aux = 182 + (97 * topo); //achando a posicao correta do ponteiro
                 fseek(fp, aux, SEEK_SET);
-                fread(&removido, sizeof(char), 1, fp);
-                if (removido == '1')
+                fread(&dados->removido, sizeof(char), 1, fp);
+
+                //se o dado era removido passa a nao ser mais pois eh inserido um novo registro valido
+                if (dados->removido == '1')
                 {
                     dados->removido = '0';
                 }
-                fread(&proxRRN, sizeof(int), 1, fp);
+                fread(&proxRRN, sizeof(int), 1, fp); //recebendo proxrrn
                 fseek(fp, aux, SEEK_SET);
                 escreve_dados(dados, fp, tipoArquivo, -1);
 
-                adicionaNovoIndex(arqIndice, cabecalho, dados, indices , nomeIndice, 0, topo, status, tipoArquivo);
+                //adiciona e reordena o novo indice recebido
+                adicionaNovoIndex(arqIndice, dados, indices , nomeIndice, 0, topo, tipoArquivo);
+
+                //atualiza o numero de removidos
                 reduzNumeroRemovidos(fp, cabecalho, 178);
             }
-            topo = proxRRN;
+            topo = proxRRN; //reposicionando o topo da pilha
             count++;
         }
 
-        fseek(fp, 0, SEEK_SET);
+        //atualiza status
         cabecalho->status = '1';
         if (topo > 0)
         {
-            cabecalho->topo = topo;
+            cabecalho->topo = topo; //atualiza topo caso haja mais removidos
         }
         escreve_cabecalho_arquivo(cabecalho, fp, 1);
     }
@@ -561,20 +567,26 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
         long long int topotipo2 = 0;
         long long int byteOffSet = 0;
         int tamReg = 0;
+
+        //recebe o topo da lista ordenada encadeada
         ler_cab_arquivo(fp, cabecalho, 2);
         topotipo2 = cabecalho->topo;
 
+        //recebe o tamanho do registro ao qual queremos "substituir"
         fseek(fp, topotipo2 + 1, SEEK_SET);
         fread(&tamReg, sizeof(int), 1, fp);
-        tamReg += 5;
+        tamReg += 5; // char removido + int tamanho
 
         while (count < n)
         {
             int tam = 0;
             indices = (regIndice_t *)realloc(indices, sizeof(regIndice_t));
             dados_t *dados = inicializa_dados();
+
+            //recebe o tamanho do registro lido do input
             tam = LeituraTipo2(dados);
 
+            //se topo for igual a -1 ou o tamanho do input for maior que o tamanho disponivel eh inserido no final
             if (topotipo2 == -1 || tam > tamReg)
             {
                 indices->id = dados->id;
@@ -585,48 +597,41 @@ void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
                 fseek(arqIndice, 0, SEEK_END);
                 escreve_indice(indices, arqIndice, tipoArquivo);
                 cabecalho->proxByteOffset = ftell(fp);
-            }else
+            }
+            //caso contrario insere no offset lido e prenche o resto do espaco com lixo
+            else 
             {
-                fseek(fp, topotipo2, SEEK_SET);
-                fread(&removido, sizeof(char), 1, fp);
+                fseek(fp, topotipo2, SEEK_SET); //reposicionando o ponteiro
+                fread(&dados->removido, sizeof(char), 1, fp);
                 fread(&tamReg, sizeof(int), 1, fp);
-                dados->tamanhoAtual = tamReg;
         
-                if (removido == '1')
+                if (dados->removido == '1')
                 {
                     dados->removido = '0';
                 }
-                fread(&byteOffSet, sizeof(int), 1, fp);
+                fread(&byteOffSet, sizeof(int), 1, fp); //recebendo o offset da prox posicao removida
                 fseek(fp, topotipo2, SEEK_SET);
                 escreve_dados(dados, fp, 2, tamReg);
 
                 // Somamos 5 para considerar sizeof(int) + sizeof(char)
                 tamReg += 5;
-                char *lixo = (char *)malloc((tamReg - tam) * sizeof(char));
-                for (int i = 0; i < (tamReg - tam); i++)
-                {
-                    lixo[i] = '$';
-                }
-                fwrite(lixo, sizeof(char), (tamReg - tam), fp);
-                free(lixo);
+                insereLixo(fp, tamReg, tam); //preenche espaco sobrando no registro
 
-                adicionaNovoIndex(arqIndice, cabecalho, dados, indices , nomeIndice, topotipo2, 0 , status, tipoArquivo );
+                adicionaNovoIndex(arqIndice, dados, indices , nomeIndice, topotipo2, 0 , tipoArquivo );
 
-                //pensar
                 reduzNumeroRemovidos(fp, cabecalho, 186);
-                topotipo2 = byteOffSet;
+                topotipo2 = byteOffSet; //atualiza topo
             }
             count++;
         }
-        fseek(fp, 0, SEEK_SET);
+        
+        //muda status
         cabecalho->status = '1';
-        fwrite(&cabecalho->status, sizeof(char), 1, fp);
         if (topotipo2 > 0)
-        {
-            fwrite(&topotipo2, sizeof(long long int), 1, fp);
-            fseek(fp, 178, SEEK_SET);
-            fwrite(&cabecalho->proxByteOffset, sizeof(long long int), 1, fp);
+        {   
+            cabecalho->topo = topotipo2; //atualiza o topo caso haja mais removidos
         }
+        escreve_cabecalho_arquivo(cabecalho, fp, 2);
     }
 
     fclose(fp);
@@ -1326,11 +1331,12 @@ int LeituraTipo2(dados_t *dados)
 }
 
 //funcao responsavel por ler o arq de indice adicionar a um array de struct e inserir novos indices ao array e reordenar
-void adicionaNovoIndex(FILE* arqIndice, cabecalho_t* cabecalho, dados_t* dados,regIndice_t *indices ,char* nomeIndice, long long int topotipo2, int topotipo1, char status, int tipoArquivo ){
+void adicionaNovoIndex(FILE* arqIndice, dados_t* dados,regIndice_t *indices ,char* nomeIndice, long long int topotipo2, int topotipo1, int tipoArquivo ){
 
     int size = 0;
     long long int counter = 1;
     int k = 0;
+    char status = '0';
 
     //recebendo tamanho total do arquivo
     fseek(arqIndice, 0, SEEK_END);
@@ -1368,15 +1374,27 @@ void adicionaNovoIndex(FILE* arqIndice, cabecalho_t* cabecalho, dados_t* dados,r
     fclose(arqIndice);
     arqIndice = abre_bin_escrita(nomeIndice);
 
-    fwrite(&cabecalho->status, sizeof(char), 1, arqIndice);
-    int i = 0;
+    status = '1';
+    fwrite(&status, sizeof(char), 1, arqIndice);
 
+    int i = 0;
     while (i < size)
     {
         escreve_indice(&indices[i], arqIndice, tipoArquivo);
         i++;
     }
     return;
+}
+
+//funcao responsavel por inserir lixo no arq binario
+void insereLixo(FILE *fp, int tamReg, int tam){
+    char *lixo = (char *)malloc((tamReg - tam) * sizeof(char));
+    for (int i = 0; i < (tamReg - tam); i++)
+    {
+        lixo[i] = '$';
+    }
+    fwrite(lixo, sizeof(char), (tamReg - tam), fp);
+    free(lixo);
 }
 
 //func responsavel por ler numero de removidos, modificar e reescrever

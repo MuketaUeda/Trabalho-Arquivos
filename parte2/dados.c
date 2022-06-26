@@ -75,17 +75,15 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo, int tamanhoFunc7)
     }
 
     fwrite(&dados->removido, sizeof(char), 1, fp);
-    // printf("remov %c\n", dados->removido);
 
     // Agora, vamos escrever o tamanho do registro
     if (tipoArquivo == 1)
         fwrite(&dados->proxRRN, sizeof(int), 1, fp);
-    // printf("prx: %d\n\n", dados->proxRRN);
+
     if (tipoArquivo == 2)
     {
         if (tamanhoFunc7 != -1)
         {
-            
             fwrite(&tamanhoFunc7, sizeof(int), 1, fp);
         }
         else
@@ -100,20 +98,6 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo, int tamanhoFunc7)
     fwrite(&dados->ano, sizeof(int), 1, fp);
 
     fwrite(&dados->quantidade, sizeof(int), 1, fp);
-
-    /*
-    if(dados->id != -1){
-        fwrite(&dados->id, sizeof(int), 1, fp);
-    }
-
-    if(dados->ano != -1){
-        fwrite(&dados->ano, sizeof(int), 1, fp);
-    }
-
-    if(dados->quantidade != -1){
-        fwrite(&dados->quantidade, sizeof(int), 1, fp);
-    }
-    */
 
     if (strlen(dados->sigla) > 0)
     {
