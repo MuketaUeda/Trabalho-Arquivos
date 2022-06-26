@@ -46,3 +46,6 @@ void funcionalidade8(int tipoArquivo, char* nomeDados, char* nomeIndice, int n);
 int busca_binaria_id(regIndice_t *indices, int posicaoInicial, int posicaoFinal, int chave);
 
 int *busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo, int trabalho2, int funcionalidade);
+
+void adicionaNovoIndex(FILE* arqIndice, cabecalho_t* cabecalho, dados_t* dados,regIndice_t *indices ,char* nomeIndice, long long int topotipo2, int topotipo1, char status, int tipoArquivo );
+void reduzNumeroRemovidos(FILE* fp, cabecalho_t *cabecalho, int aux);
