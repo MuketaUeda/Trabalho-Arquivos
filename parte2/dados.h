@@ -30,7 +30,7 @@ struct regDados
 };
 
 dados_t *inicializa_dados();
-int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo);
+int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo, int tamanhoFunc7);
 void ler_dados_tipo1(FILE *fp, dados_t *dados);
 int ler_dados_tipo2(FILE *fp, dados_t *dados);
 void atualiza_dados_tipo1(FILE *BIN, char **nomeCamposBusca, char **valorCamposBusca, int n, int idAtualiza);

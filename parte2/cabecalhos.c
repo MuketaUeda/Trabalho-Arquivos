@@ -73,7 +73,6 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
     if (tipo == 1)
     {
         fread(&cabecalho->topo, sizeof(int), 1, fp);
-        // printf("topo cab: %lld\n", cabecalho->topo);
 
         // Pula 169 bytes, referentes aos códigos e descrições
         fseek(fp, 169, SEEK_CUR);
@@ -82,6 +81,7 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
     else if (tipo == 2)
     {
         fread(&cabecalho->topo, sizeof(long long int), 1, fp);
+        //printf("topo cab: %lld\n", cabecalho->topo);
 
         // Pula 169 bytes, referentes aos códigos e descrições
         fseek(fp, 169, SEEK_CUR);

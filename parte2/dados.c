@@ -31,7 +31,7 @@ dados_t *inicializa_dados()
 }
 
 // Escrita dos dados. Função unificada para arquivos do tipo 1 e do tipo 2
-int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
+int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo, int tamanhoFunc7)
 {
     // vamos aproveitar as variáveis dos códigos da cidade, marca e modelo, do cabeçalho
     cabecalho_t *cabecalho = inicia_cabecalho();
@@ -83,7 +83,15 @@ int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo)
     // printf("prx: %d\n\n", dados->proxRRN);
     if (tipoArquivo == 2)
     {
-        fwrite(&dados->tamanhoAtual, sizeof(int), 1, fp);
+        if (tamanhoFunc7 != -1)
+        {
+            
+            fwrite(&tamanhoFunc7, sizeof(int), 1, fp);
+        }
+        else
+        {
+            fwrite(&dados->tamanhoAtual, sizeof(int), 1, fp);
+        }
         fwrite(&dados->proxOffset, sizeof(long long int), 1, fp);
     }
 
@@ -394,8 +402,8 @@ void atualiza_dados_tipo1(FILE *BIN, char **nomeCamposAtualiza, char **valorCamp
         posicao = ftell(BIN);
         ler_dados_tipo1(BIN, dados);
     }
-    //printf("ID: %d\n", );
-    //imprimeDados(dados, cabecalho);
+    // printf("ID: %d\n", );
+    // imprimeDados(dados, cabecalho);
 
     // printf("nome: %s valor: %s\n", dados->marca,dados->sigla);
     //   imprimeDados(dados, cabecalho);
@@ -473,9 +481,9 @@ void atualiza_dados_tipo1(FILE *BIN, char **nomeCamposAtualiza, char **valorCamp
         i++;
         // printf("oioi %s\n", dados->cidade);
         fseek(BIN, posicao, SEEK_SET);
-        //printf("ID: %d\n", dados->id);
-        //imprimeDados(dados, cabecalho);
-        escreve_dados(dados, BIN, 1);
+        // printf("ID: %d\n", dados->id);
+        // imprimeDados(dados, cabecalho);
+        escreve_dados(dados, BIN, 1, -1);
         //  fseek(BIN, posicao + 5, SEEK_SET);
         //  fread(&id, sizeof(int), 1, BIN);
     }
