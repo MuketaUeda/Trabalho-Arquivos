@@ -21,7 +21,7 @@ void copia_binario(FILE *CSV, FILE *BIN, char *nomeBinario, int tipoArquivo);
 
 void posicao_arquivo_leitura(FILE *BIN, dados_t *dados, int RRN);
 void posicao_arquivo_escrita(FILE *BIN, dados_t *dados, long long int posicao, int tipoArquivo);
-void adicionaNovoIndex(FILE* arqIndice, dados_t* dados,regIndice_t *indices ,char* nomeIndice, long long int topotipo2, int topotipo1, int tipoArquivo );
+void adicionaNovoIndex(FILE* arqIndice, dados_t* dados,regIndice_t *indices ,char* nomeIndice, long long int offSet, int RRN, int tipoArquivo );
 void reduzNumeroRemovidos(FILE* fp, cabecalho_t *cabecalho, int aux);
 void insereLixo(FILE *fp, int tamReg, int tam);
 void imprimeDados(dados_t *dados, cabecalho_t *cabecalho);

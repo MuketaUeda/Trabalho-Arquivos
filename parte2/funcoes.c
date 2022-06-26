@@ -1331,7 +1331,7 @@ int LeituraTipo2(dados_t *dados)
 }
 
 //funcao responsavel por ler o arq de indice adicionar a um array de struct e inserir novos indices ao array e reordenar
-void adicionaNovoIndex(FILE* arqIndice, dados_t* dados,regIndice_t *indices ,char* nomeIndice, long long int topotipo2, int topotipo1, int tipoArquivo ){
+void adicionaNovoIndex(FILE* arqIndice, dados_t* dados,regIndice_t *indices ,char* nomeIndice, long long int offSet, int RRN, int tipoArquivo ){
 
     int size = 0;
     long long int counter = 1;
@@ -1360,10 +1360,10 @@ void adicionaNovoIndex(FILE* arqIndice, dados_t* dados,regIndice_t *indices ,cha
     indices = (regIndice_t *)realloc(indices, (++size) * sizeof(regIndice_t));
     indices[k].id = dados->id;
     if(tipoArquivo == 1){
-        indices[k].proxRRN = topotipo1;
+        indices[k].proxRRN = RRN;
     }
     if(tipoArquivo == 2){
-        indices[k].offSet = topotipo2;
+        indices[k].offSet = offSet;
     }
     indices[k].id = indices[k].id;
 
