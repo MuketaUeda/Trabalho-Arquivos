@@ -485,7 +485,7 @@ void funcionalidade6(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
     return;
 }
 
-//comentar funcao, rever escrita cabacalho e rever variaveis inuteis
+
 void funcionalidade7(int tipoArquivo, char *nomeDados, char *nomeIndice, int n)
 {
 
