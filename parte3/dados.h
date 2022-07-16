@@ -1,5 +1,5 @@
 /*
-Trabalho 1 - Organização de Arquivos - SCC0215
+Trabalho 3 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
@@ -7,7 +7,11 @@ João Pedro Duarte Nunes - 12542460
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX 4
+
 typedef struct regDados dados_t;
+typedef struct regDadosArvoreB dadosArvoreB;
+
 
 // Unificamos as structs dos registros de dados do tipo 1 e do tipo 2 pelo fato de serem bem similares.
 struct regDados
@@ -27,6 +31,18 @@ struct regDados
     int tamanhoAtual;
     int proxRRN;
     long long int proxOffset;
+};
+
+
+//acredito que esteja certo fiquei com duvidas perguntar pro monitor
+struct regDadosArvoreB
+{
+    char tipoNo;
+    int nroChaves;
+    int RRNdoNo;
+    int ponteiro[MAX];
+    int chave[MAX-1];
+    long long int ponteiroReg[MAX-1];
 };
 
 dados_t *inicializa_dados();

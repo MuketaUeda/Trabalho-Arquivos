@@ -1,5 +1,5 @@
 /*
-Trabalho 1 - Organização de Arquivos - SCC0215
+Trabalho 3 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
@@ -28,6 +28,15 @@ cabecalho_t *inicia_cabecalho()
 
     return cabecalho;
 }
+
+cabecalhoArvoreB *inicia_cabecalhoArvoreB()
+{
+    cabecalhoArvoreB *cabecalhoB = (cabecalhoArvoreB *)malloc(1 * sizeof(cabecalhoArvoreB));
+    cabecalhoB->status = '0';
+    cabecalhoB->noRaiz = -1;
+    cabecalhoB->proxRRN = 0;
+    cabecalhoB->nroNos;
+};
 
 // funcao de escrita de cabecalho no arq binario
 // Unificada para os tipo 1 e tipo 2, pois as diferenças entre ambos são bem pequenas
@@ -98,4 +107,42 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
     }
 
     return;
+}
+
+//funcao de leitura do cabecalho da avB
+void lerCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB *cabecalho){
+	fread(&cabecalho->status, sizeof(char), 1, arquivo);
+	fread(&cabecalho->noRaiz, sizeof(int), 1, arquivo);
+	fread(&cabecalho->proxRRN, sizeof(int), 1, arquivo);
+    fread(&cabecalho->nroNos, sizeof(int), 1, arquivo);
+	
+	if(cabecalho->status == '0')
+	{ //Se o arquivo estiver corrompido, informa e para a execução
+		printf("Falha no processamento do arquivo.");
+		exit(0);
+	}
+}
+
+//escreve o cabecalho da arvoreB e do lixo especificado
+void escreverCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB cabecalho, int tipo){
+	fwrite(&cabecalho.status, sizeof(char), 1, arquivo);
+	fwrite(&cabecalho.noRaiz, sizeof(int), 1, arquivo);
+	fwrite(&cabecalho.proxRRN, sizeof(int), 1, arquivo);
+    fwrite(&cabecalho.nroNos, sizeof(int), 1, arquivo);
+	
+    int qttLixo;
+    if(tipo == 1){
+        qttLixo = 32;
+    }
+    if(tipo ==2){
+        qttLixo = 44;
+    }
+    char *lixo = (char *)malloc(qttLixo * sizeof(char));
+    for (int i = 0; i < qttLixo; i++)
+    {
+        lixo[i] = '$';
+    }
+    fwrite(lixo, sizeof(char), qttLixo, arquivo);
+    free(lixo);
+
 }

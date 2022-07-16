@@ -1,5 +1,5 @@
 /*
-Trabalho 1 - Organização de Arquivos - SCC0215
+Trabalho 3 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
@@ -27,6 +27,23 @@ dados_t *inicializa_dados()
     dados->removido = '0';
     dados->proxOffset = -1;
     dados->tamanhoAtual = 0;
+    return dados;
+}
+
+dadosArvoreB *iniciliza_dados_arvoreB()
+{
+    dadosArvoreB *dados = malloc(1* sizeof(dadosArvoreB));
+    dados->tipoNo = '0';
+    dados->nroChaves = 0;
+    dados->RRNdoNo = 0;
+
+    for(int i = 0; i < MAX; i++){
+        if(i < MAX-1){
+            dados->chave[i] = -1;
+            dados->ponteiroReg[i] = -1;
+        }
+        dados->ponteiro[i] = -1;
+    }
     return dados;
 }
 

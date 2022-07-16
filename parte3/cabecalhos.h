@@ -1,5 +1,5 @@
 /*
-Trabalho 1 - Organização de Arquivos - SCC0215
+Trabalho 3 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
@@ -7,8 +7,10 @@ João Pedro Duarte Nunes - 12542460
 #include<stdlib.h>
 #include<string.h>
 
+#define MAX 4
+
 typedef struct regCabTipo1 cabecalho_t;
-typedef struct regCabTipo2 cabecalhoTipo2_t;
+typedef struct regCabArvoreB cabecalhoArvoreB;
 
 struct regCabTipo1{
     //Repare que foi somado 1 ao tamanho de cada array, por conta de /0 no fim. 
@@ -31,8 +33,16 @@ struct regCabTipo1{
     int nroRegRemovidos; //inicia com zero
 };
 
+struct regCabArvoreB{
+    char status;
+    int noRaiz;
+    int proxRRN;
+    int nroNos;
+};
 
 
 cabecalho_t *inicia_cabecalho();
 void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo);
 void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo);
+void lerCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB *cabecalho);
+void escreverCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB cabecalho, int tipo);
