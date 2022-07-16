@@ -10,7 +10,11 @@ João Pedro Duarte Nunes - 12542460
 #define MAX 4
 
 typedef struct regCabTipo1 cabecalho_t;
+<<<<<<< HEAD
 typedef struct regCabArvoreB cabecalhoArvoreB_t;
+=======
+typedef struct regCabArvoreB cabecalhoArvoreB;
+>>>>>>> refs/remotes/origin/main
 
 struct regCabTipo1{
     //Repare que foi somado 1 ao tamanho de cada array, por conta de /0 no fim. 
@@ -45,8 +49,13 @@ cabecalho_t *inicia_cabecalho();
 cabecalhoArvoreB_t *inicia_cabecalhoArvoreB();
 void escreve_cabecalho_arquivo(cabecalho_t *cabecalho, FILE *fp, int tipo);
 void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo);
+<<<<<<< HEAD
 void lerCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB_t *cabecalho);
 void escreverCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB_t cabecalho, int tipo);
 
 
 
+=======
+void lerCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB *cabecalho);
+void escreverCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB cabecalho, int tipo);
+>>>>>>> refs/remotes/origin/main
