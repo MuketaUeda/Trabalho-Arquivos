@@ -29,7 +29,6 @@ cabecalho_t *inicia_cabecalho()
     return cabecalho;
 }
 
-<<<<<<< HEAD
 cabecalhoArvoreB_t *inicia_cabecalhoArvoreB()
 {
     cabecalhoArvoreB_t *cabecalhoB = (cabecalhoArvoreB_t *)malloc(1 * sizeof(cabecalhoArvoreB_t));
@@ -39,15 +38,6 @@ cabecalhoArvoreB_t *inicia_cabecalhoArvoreB()
     cabecalhoB->nroNos = 0;
 
     return cabecalhoB;
-=======
-cabecalhoArvoreB *inicia_cabecalhoArvoreB()
-{
-    cabecalhoArvoreB *cabecalhoB = (cabecalhoArvoreB *)malloc(1 * sizeof(cabecalhoArvoreB));
-    cabecalhoB->status = '0';
-    cabecalhoB->noRaiz = -1;
-    cabecalhoB->proxRRN = 0;
-    cabecalhoB->nroNos;
->>>>>>> refs/remotes/origin/main
 };
 
 // funcao de escrita de cabecalho no arq binario
@@ -122,22 +112,14 @@ void ler_cab_arquivo(FILE *fp, cabecalho_t *cabecalho, int tipo)
 }
 
 //funcao de leitura do cabecalho da avB
-<<<<<<< HEAD
 void lerCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB_t *cabecalho){
-=======
-void lerCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB *cabecalho){
->>>>>>> refs/remotes/origin/main
 	fread(&cabecalho->status, sizeof(char), 1, arquivo);
 	fread(&cabecalho->noRaiz, sizeof(int), 1, arquivo);
 	fread(&cabecalho->proxRRN, sizeof(int), 1, arquivo);
     fread(&cabecalho->nroNos, sizeof(int), 1, arquivo);
-<<<<<<< HEAD
 
     fseek(arquivo, 45, SEEK_SET);
 
-=======
-	
->>>>>>> refs/remotes/origin/main
 	if(cabecalho->status == '0')
 	{ //Se o arquivo estiver corrompido, informa e para a execução
 		printf("Falha no processamento do arquivo.");
@@ -146,11 +128,7 @@ void lerCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB *cabecalho){
 }
 
 //escreve o cabecalho da arvoreB e do lixo especificado
-<<<<<<< HEAD
 void escreverCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB_t cabecalho, int tipo){
-=======
-void escreverCabecalhoArvoreB(FILE *arquivo, cabecalhoArvoreB cabecalho, int tipo){
->>>>>>> refs/remotes/origin/main
 	fwrite(&cabecalho.status, sizeof(char), 1, arquivo);
 	fwrite(&cabecalho.noRaiz, sizeof(int), 1, arquivo);
 	fwrite(&cabecalho.proxRRN, sizeof(int), 1, arquivo);

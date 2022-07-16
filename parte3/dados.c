@@ -30,7 +30,6 @@ dados_t *inicializa_dados()
     return dados;
 }
 
-<<<<<<< HEAD
 dadosArvoreB_t *inicializa_dados_arvoreB()
 {
     dadosArvoreB_t *dados = malloc(1 * sizeof(dadosArvoreB_t));
@@ -43,19 +42,6 @@ dadosArvoreB_t *inicializa_dados_arvoreB()
         {
             dados->chave[i] = -1;
             dados->RRNdoNo[i] = -1;
-=======
-dadosArvoreB *iniciliza_dados_arvoreB()
-{
-    dadosArvoreB *dados = malloc(1* sizeof(dadosArvoreB));
-    dados->tipoNo = '0';
-    dados->nroChaves = 0;
-    dados->RRNdoNo = 0;
-
-    for(int i = 0; i < MAX; i++){
-        if(i < MAX-1){
-            dados->chave[i] = -1;
-            dados->ponteiroReg[i] = -1;
->>>>>>> refs/remotes/origin/main
         }
         dados->ponteiro[i] = -1;
     }
