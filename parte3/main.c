@@ -19,6 +19,8 @@ int main()
     char *NomeIndice = (char *)malloc(sizeof(char) * 25);
     int RRN = 0;
     int n = 0;
+    int valorID = 0;
+    char id[3];
 
     scanf("%d", &comando);
     scanf("%s", tipoArq);
@@ -96,6 +98,27 @@ int main()
         funcionalidade8(tipoArqInt, NomeBinario, NomeIndice, n);
         break;
 
+    case 9:
+        scanf("%s", NomeBinario);
+        scanf("%s", NomeIndice);
+        //funcionalidade9(tipoArqInt, NomeBinario, NomeIndice);
+        break;
+
+    case 10:
+        scanf("%s", NomeBinario);
+        scanf("%s", NomeIndice);
+        scanf("%s", id);
+        scanf("%d", &valorID);
+        funcionalidade10(tipoArqInt, NomeBinario, NomeIndice, valorID);
+        break;
+
+    case 11:
+        scanf("%s", NomeBinario);
+        scanf("%s", NomeIndice);
+        scanf("%d", &n);
+        //funcionalidade11(tipoArqInt, NomeBinario, NomeIndice, n);
+        break;
+    
     default:
         printf("ERRO: comando invalido\n");
         break;

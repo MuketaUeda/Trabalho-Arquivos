@@ -1,5 +1,5 @@
 /*
-Trabalho 2 - Organização de Arquivos - SCC0215
+Trabalho 3 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
@@ -704,6 +704,81 @@ void funcionalidade8(int tipoArquivo, char *nomeDados, char *nomeIndice, int num
     return;
 }
 
+void funcionalidade10(int tipoArquivo, char *nomeDados, char *nomeIndice, int valorID)
+{
+    cabecalhoArvoreB_t *cabecalhoArvore = inicia_cabecalhoArvoreB();
+    cabecalho_t *cabecalho = inicia_cabecalho();
+    dados_t *dados = inicializa_dados();
+    int encontrado = 0;
+    FILE *veiculoBin = abre_bin_leitura(nomeDados);
+    FILE *arqBtreeIndex = abre_bin_leitura(nomeIndice);
+
+    ler_cab_arquivo(veiculoBin, cabecalho, tipoArquivo);
+    lerCabecalhoArvoreB(arqBtreeIndex, cabecalhoArvore);
+    // printf("id: %d\n", cabecalhoArvore->noRaiz);
+
+    if (!buscaArvoreB(arqBtreeIndex, cabecalhoArvore->noRaiz, valorID, &encontrado))
+    {
+        printf("Registro inexistente.");
+        return;
+    }
+    fseek(veiculoBin, encontrado, SEEK_SET); // setamos para o registro achado
+
+    // ler e imprimir dados resultantes
+    ler_dados_tipo1(veiculoBin, dados);
+    imprimeDados(dados, cabecalho);
+
+    // fechando ambos arquivos :D
+    fclose(veiculoBin);
+    fclose(arqBtreeIndex);
+
+    return;
+}
+
+int buscaArvoreB(FILE *arquivo, int RRN, int chave, int *encontrado)
+{
+    int pos = 0;
+
+    if (RRN == -1)
+        return 0; // nao achou
+
+    dadosArvoreB_t *arvore = inicializa_dados_arvoreB();
+
+    lerArvoreB(arquivo, arvore);
+    if (ocorrenciaDaChave(arvore, chave, &pos))
+    {
+        *encontrado = arvore->RRNdoNo[pos];
+        return 1;
+    }
+    else
+    {
+
+        fseek(arquivo, ((arvore->RRNdoNo[pos] * 45) + 45), SEEK_SET);
+        return buscaArvoreB(arquivo, arvore->ponteiro[pos], chave, encontrado);
+    }
+
+    return 0;
+}
+
+int ocorrenciaDaChave(dadosArvoreB_t *pagina, int chave, int *pos)
+{
+    for (int i = 0; i < MAX - 1; i++)
+    {
+        *pos = i;
+        if (pagina->chave[i] == -1)
+            return 0;
+        if (pagina->chave[i] == chave)
+            return 1;
+        if (chave > pagina->chave[i])
+        {
+            *pos = i + 1;
+        }
+        else if (chave < pagina->chave[i])
+            *pos = i - 1;
+    }
+    return 0;
+}
+
 int busca_binaria_id(regIndice_t *indices, int posicaoInicial, int posicaoFinal, int chave)
 {
     while (posicaoInicial <= posicaoFinal)
@@ -735,7 +810,7 @@ void printArray(regIndice_t *indices, int tamanho)
     printf("\n");
 }
 
-//Função de busca da funcionalidade 3, com algumas adaptações para as outras funcionalidades.
+// Função de busca da funcionalidade 3, com algumas adaptações para as outras funcionalidades.
 int *busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo, int trabalho2, int funcionalidade)
 {
     int wtf = 0;

@@ -1,5 +1,5 @@
 /*
-Trabalho 1 - Organização de Arquivos - SCC0215
+Trabalho 3 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
@@ -30,8 +30,26 @@ dados_t *inicializa_dados()
     return dados;
 }
 
+dadosArvoreB_t *inicializa_dados_arvoreB()
+{
+    dadosArvoreB_t *dados = malloc(1 * sizeof(dadosArvoreB_t));
+    dados->tipoNo = '0';
+    dados->nroChaves = 0;
+
+    for (int i = 0; i < MAX; i++)
+    {
+        if (i < MAX - 1)
+        {
+            dados->chave[i] = -1;
+            dados->RRNdoNo[i] = -1;
+        }
+        dados->ponteiro[i] = -1;
+    }
+    return dados;
+}
+
 // Escrita dos dados. Função unificada para arquivos do tipo 1 e do tipo 2
-int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo, int tamanhoFunc7) //recebe um valor de tamanho diferente caso seja da funcao 7
+int escreve_dados(dados_t *dados, FILE *fp, int tipoArquivo, int tamanhoFunc7) // recebe um valor de tamanho diferente caso seja da funcao 7
 {
     // vamos aproveitar as variáveis dos códigos da cidade, marca e modelo, do cabeçalho
     cabecalho_t *cabecalho = inicia_cabecalho();
@@ -166,7 +184,7 @@ void ler_dados_tipo1(FILE *fp, dados_t *dados)
     tamanhoRegistro += sizeof(char);
     fread(&dados->proxRRN, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
-    
+
     fread(&dados->id, sizeof(int), 1, fp);
     tamanhoRegistro += sizeof(int);
     fread(&dados->ano, sizeof(int), 1, fp);
@@ -455,6 +473,25 @@ void atualiza_dados_tipo1(FILE *BIN, char **nomeCamposAtualiza, char **valorCamp
         escreve_dados(dados, BIN, 1, -1);
     }
     return;
+}
+
+void lerArvoreB(FILE *arquivo, dadosArvoreB_t *dados)
+{
+    fread(&dados->tipoNo, sizeof(char), 1, arquivo);
+    fread(&dados->nroChaves, sizeof(int), 1, arquivo);
+    // fread(&dados->RRNdoNo, sizeof(int), 1, arquivo);
+    printf("num: %c\n", dados->tipoNo);
+    // ler e inserir no dados
+    for (int i = 0; i < MAX; i++)
+    {
+        fread(&dados->ponteiro[i], sizeof(int), 1, arquivo);
+        if (i < MAX - 1)
+        {
+            fread(&dados->chave[i], sizeof(int), 1, arquivo);
+            printf("chave: %d\n", dados->chave[i]);
+            fread(&dados->RRNdoNo[i], sizeof(int), 1, arquivo);
+        }
+    }
 }
 
 // funcao de liberacao de memoria para os dados

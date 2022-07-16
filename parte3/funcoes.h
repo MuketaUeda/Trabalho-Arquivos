@@ -1,5 +1,5 @@
 /*
-Trabalho 1 - Organização de Arquivos - SCC0215
+Trabalho 3 - Organização de Arquivos - SCC0215
 Gabriel Tavares Brayn Rosati - 11355831
 João Pedro Duarte Nunes - 12542460
 */
@@ -45,6 +45,13 @@ void Leitura(dados_t *dados);
 int LeituraTipo2(dados_t *dados);
 int busca_binaria_id(regIndice_t *indices, int posicaoInicial, int posicaoFinal, int chave);
 int *busca(FILE *BIN, char **nomeCampos, char **valorCampos, int n, int tipoArquivo, int trabalho2, int funcionalidade);
+
+void funcionalidade10(int tipoArquivo, char *nomeDados, char *nomeIndice, int valorID);
+int buscaArvoreB(FILE *arquivo, int RRN, int chave, int *encontrado);
+int ocorrenciaDaChave(dadosArvoreB_t *pagina, int chave, int *pos);
+
+
+
 void posicao_arquivo_leitura(FILE *BIN, dados_t *dados, int RRN);
 void posicao_arquivo_escrita(FILE *BIN, dados_t *dados, long long int posicao, int tipoArquivo);
 void adicionaNovoIndex(FILE* arqIndice, dados_t* dados,regIndice_t *indices ,char* nomeIndice, long long int offSet, int RRN, int tipoArquivo );
